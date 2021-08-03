@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400&display=swap');
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+
+  --background: hsl(240, 1%, 18%);
+  background-color: var(--background);
+}
+
+body {
+  margin: 0;
+  font-family: 'Oxygen', 'Roboto', 'Segoe UI', 
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif, -apple-system, BlinkMacSystemFont;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --brand-hue: 192;
+  --brand-sat: 100%;
+  --brand-lum: 50%;
+  --brand-color:hsl(var(--brand-hue), var(--brand-sat), var(--brand-lum));
+  --brand-dark: hsl(204, var(--brand-sat), var(--brand-lum));
+  --brand-fade: linear-gradient(to right, var(--brand-color), var(--brand-dark));
+}
+
+.barlow {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+} */
+
+.App {
+  display: flex;
+  flex-flow: column;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 1);
+  font-style: italic;
+}
+
+h1 {
+  display: flex;
+}
+
+i {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1em;
+}
+
+i ~ span, i ~ div, i ~ ul {
+  margin-left: 0.25em;
+}
+
+.display-flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-0 {
+  flex: 0;
+}
+
+.btn {
+  cursor: pointer;
+  user-select: none;
+}
+.btn:hover {
+  color: #0cf;
+}
+
+.btn.inactive {
+  cursor: not-allowed;
+  color: rgba(200, 200, 200, 0.5);
+}
+
+i.btn.large {
+  font-size: 2em;
+}
+
+ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.modal {
+  top: 50%;
+  left: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.abs {
+  position: absolute;
+  /* z-index: 0; */
+}
+
+input:focus {
+  outline: none;
+}
