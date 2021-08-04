@@ -50,10 +50,12 @@ class CartContainer extends React.Component {
                 <ul className={`kit-complete-header ${parentItemHeader.parent ? "child" : "adult"}`}>
                     <li className=""><i className="collapser-button" onClick={this.toggle}>{collapsedBody ? "expand_less" : "expand_more"}</i></li>
                     <li className="cart-col quantity numeric">
-                        <SuperInput
-                            value={parentItemHeader.quantity.actual}
-                            updateValue={(q) => this.props.updateCart(parentItemHeader.details, parentItemHeader.branchChain.join("~"), q)}
-                        />
+                        <div className="super-input-container">
+                            <SuperInput
+                                value={parentItemHeader.quantity.actual}
+                                updateValue={(q) => this.props.updateCart(parentItemHeader.details, parentItemHeader.branchChain.join("~"), q)}
+                            />
+                        </div>
                     </li>
                     <li className="cart-col name">{parentItemHeader.name}</li>
                     <li className="cart-col rate numeric">{parentItemHeader.rate.toFixed(2)}</li>

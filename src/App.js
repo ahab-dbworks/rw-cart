@@ -54,6 +54,7 @@ class App extends React.Component {
       cartList: {},
       startDate: new Date(),
       endDate: new Date(),
+      quotePeriod: 1,
       cartMode: "out"
     };
   }
@@ -336,7 +337,8 @@ class App extends React.Component {
 
   setDates = (dates) => {
     const [start, end] = dates;
-    this.setState({ startDate: start, endDate: end });
+    const quotePeriod = this.getNumberOfDays(start, end);
+    this.setState({ startDate: start, endDate: end, quotePeriod: quotePeriod });
   }
 
   setInventoryType = (e) => {
@@ -390,12 +392,21 @@ class App extends React.Component {
     this.setState({ cartMode: newMode });
   }
 
+  getNumberOfDays = (start, end) => {
+    const d1 = new Date(start);
+    const d2 = new Date(end);
+    const oneDay = 1000 * 60 * 60 * 24;
+    const diffInTime = d2.getTime() - d1.getTime();
+    const diffInDays = Math.round(diffInTime / oneDay);
+    return diffInDays + 1;
+  }
+
   componentDidMount() {
     this.getCredentials();
   } 
 
   render() {
-    const { route, warehouse, activity, inventoryType, category, subcategory, startDate, endDate, cartList, cartMode } = this.state;
+    const { route, warehouse, activity, inventoryType, category, subcategory, startDate, endDate, quotePeriod, cartList, cartMode } = this.state;
     //console.log("App render with state:", this.state);
     //
     let headerSection, paramColumn, catalogColumn, cartColumn, cartSwitch, mainApp = undefined;
@@ -511,6 +522,7 @@ class App extends React.Component {
                   <Cart
                     cartList={cartList}
                     activityList={ACTIVITYLIST}
+                    quotePeriod={quotePeriod}
                     updateCart={this.addItemToCart}
                     clearCart={this.clearCart}
                     submitQuote={this.submitQuote}
@@ -524,7 +536,7 @@ class App extends React.Component {
               cartSwitch =
                 <div className="slide-panel-switch" onClick={this.toggleCart}>
                   {
-                    cartMode === "in" ? <i>close</i> : <i>shopping_cart</i>
+                    cartMode === "in" ? <i>logout</i> : <i>shopping_cart</i>
                   }
                 </div>
               

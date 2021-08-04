@@ -48,17 +48,29 @@ const Cart = (props) => {
         
         
     } else {
-        cartBody = <div>Cart Empty</div>
+        cartBody = <div className="modal" style={{flex:1}}>Cart Empty</div>
     }
+    
     return (
         <div className="cart-container">
             <div className="cart-contents param-set">
                 {cartBody}
             </div>
             <div className="cart-summary param-set barlow">
-                <span>Total:</span>
-                $
-                {cartSubTotal.toFixed(2)}
+                <div className="cart-summary-row">
+                    <span>Daily Subtotal:</span>
+                    $
+                    {cartSubTotal.toFixed(2)}
+                </div>
+                <div className="cart-summary-row">
+                    <span>Quote Duration</span>
+                    {props.quotePeriod} {(props.quotePeriod > 1 ? "Days" : "Day")}
+                </div>
+                <div className="cart-summary-row grand">
+                    <span>Total:</span>
+                    $
+                    {(cartSubTotal * props.quotePeriod).toFixed(2)}
+                </div>
             </div>
         </div>
     )

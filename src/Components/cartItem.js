@@ -41,7 +41,9 @@ const CartItem = (props) => {
                 <ul className={`${content[0].isOption ? "option" : ""} ${content[0].parent ? "child" : "adult"}`}>
                     <li className="cart-col">•</li>
                     <li className="cart-col quantity numeric">
-                        {itemQuantity}
+                        <div className="super-input-container">
+                            {itemQuantity}
+                        </div>
                     </li>
                     <li className="cart-col name">{content[0].name}</li>
                     <li className="cart-col rate numeric">{content[0].rate.toFixed(2)}</li>

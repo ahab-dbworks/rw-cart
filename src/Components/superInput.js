@@ -45,14 +45,14 @@ class SuperInput extends React.Component {
         switch (mode) {
             case "read":
                 inputDisplay =
-                    <div className="super-input" onClick={() => this.changeMode("write")}>{value}</div>
+                    <div className="super-input">{value}</div>
                 break;
             case "write":
                 inputDisplay =
                     <input className="super-input" type="number" onFocus={this.handleLoad} onBlur={() => this.changeMode("read")} onChange={this.changeValue} onKeyPress={this.enterValue} value={stateValue} autoFocus/>
         }
         return (
-            <div className="super-input-container">
+            <div className="super-input-container" onClick={() => this.changeMode("write")}>
                 {inputDisplay}
             </div>
         )
