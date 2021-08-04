@@ -16,6 +16,7 @@ const Cart = (props) => {
         }
         topTier[item.branchChain[0]].push(item);
     })
+    const grandTotal = cartSubTotal * props.quotePeriod;
     
     if (!_.isEmpty(cartList)) {
         cartBody = 
@@ -48,28 +49,43 @@ const Cart = (props) => {
         
         
     } else {
-        cartBody = <div className="modal" style={{flex:1}}>Cart Empty</div>
+        cartBody = <div className="modal barlow" style={{flex:1}}>Cart Empty</div>
     }
+    const cartSwitchTotal = grandTotal > 0 ? grandTotal.toFixed(2) : "";
     
     return (
-        <div className="cart-container">
-            <div className="cart-contents param-set">
-                {cartBody}
+        <div>
+            <div className="slide-panel-switch barlow" onClick={props.toggleCart}>
+                {
+                    props.cartMode === "in" ? <i>logout</i> : <div style={{display: "flex"}}><i>shopping_cart</i>{cartSwitchTotal}</div>
+                }
             </div>
-            <div className="cart-summary param-set barlow">
-                <div className="cart-summary-row">
-                    <span>Daily Subtotal:</span>
-                    $
-                    {cartSubTotal.toFixed(2)}
+            <div className={`cart-container slide-panel ${props.cartMode}`}>
+                <div className="column-header param-set">
+                    <h1><i>shopping_cart</i>CART</h1>
                 </div>
-                <div className="cart-summary-row">
-                    <span>Quote Duration</span>
-                    {props.quotePeriod} {(props.quotePeriod > 1 ? "Days" : "Day")}
+                <div className="cart-contents param-set">
+                    {cartBody}
                 </div>
-                <div className="cart-summary-row grand">
-                    <span>Total:</span>
-                    $
-                    {(cartSubTotal * props.quotePeriod).toFixed(2)}
+                <div className="cart-summary param-set barlow">
+                    <div className="cart-summary-row">
+                        <span>Daily Subtotal:</span>
+                        $
+                        {cartSubTotal.toFixed(2)}
+                    </div>
+                    <div className="cart-summary-row">
+                        <span>Quote Duration</span>
+                        {props.quotePeriod} {(props.quotePeriod > 1 ? "Days" : "Day")}
+                    </div>
+                    <div className="cart-summary-row grand">
+                        <span>Total:</span>
+                        $
+                        {(cartSubTotal * props.quotePeriod).toFixed(2)}
+                    </div>
+                </div>
+                <div className="cart-submit">
+                    <div className="text-button dim" onClick={props.clearCart}><i>delete_forever</i><span>Clear Cart</span></div>
+                    <div className="text-button" onClick={props.submitQuote}><i>send</i><span>Submit Quote</span></div>
                 </div>
             </div>
         </div>

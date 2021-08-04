@@ -516,28 +516,16 @@ class App extends React.Component {
   
               cartColumn =
                 <div className="column right">
-                  <div className="column-header param-set">
-                    <h1><i>shopping_cart</i>CART</h1>
-                  </div>
                   <Cart
-                    cartList={cartList}
-                    activityList={ACTIVITYLIST}
-                    quotePeriod={quotePeriod}
-                    updateCart={this.addItemToCart}
-                    clearCart={this.clearCart}
-                    submitQuote={this.submitQuote}
+                  cartMode={cartMode}
+                  cartList={cartList}
+                  activityList={ACTIVITYLIST}
+                  quotePeriod={quotePeriod}
+                  updateCart={this.addItemToCart}
+                  clearCart={this.clearCart}
+                  submitQuote={this.submitQuote}
+                  toggleCart={this.toggleCart}
                   />
-                  <div className="cart-submit">
-                    <div className="text-button dim" onClick={this.clearCart}><i>delete_forever</i><span>Clear Cart</span></div>
-                    <div className="text-button" onClick={this.submitQuote}><i>send</i><span>Submit Quote</span></div>
-                  </div>
-                </div>
-  
-              cartSwitch =
-                <div className="slide-panel-switch" onClick={this.toggleCart}>
-                  {
-                    cartMode === "in" ? <i>logout</i> : <i>shopping_cart</i>
-                  }
                 </div>
               
               mainApp =
@@ -548,10 +536,7 @@ class App extends React.Component {
                     {catalogColumn}
                   </div>
                   <div className="body-margin">
-                    {cartSwitch}
-                    <div className={`slide-panel ${cartMode}`}>
-                      {cartColumn}
-                    </div>
+                    {cartColumn}
                   </div>
                 </article>
               break;
