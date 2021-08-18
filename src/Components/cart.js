@@ -52,6 +52,7 @@ const Cart = (props) => {
         cartBody = <div className="modal barlow" style={{flex:1}}>Cart Empty</div>
     }
     const cartSwitchTotal = grandTotal > 0 ? grandTotal.toFixed(2) : "";
+    const submitButton = (Object.keys(cartList).length > 0 ? <div className="text-button" onClick={props.submitQuote}><i>send</i><span>Submit Quote</span></div> : <div className="text-button disabled" ><i>send</i><span>Submit Quote</span></div>);
     
     return (
         <div>
@@ -60,7 +61,7 @@ const Cart = (props) => {
                     props.cartMode === "in" ? <i>logout</i> : <div style={{display: "flex"}}><i>shopping_cart</i>{cartSwitchTotal}</div>
                 }
             </div>
-            <div className={`cart-container slide-panel ${props.cartMode}`}>
+            <div className={`cart slide-panel ${props.cartMode}`}>
                 <div className="column-header param-set">
                     <h1><i>shopping_cart</i>CART</h1>
                 </div>
@@ -83,9 +84,9 @@ const Cart = (props) => {
                         {(cartSubTotal * props.quotePeriod).toFixed(2)}
                     </div>
                 </div>
-                <div className="cart-submit">
-                    <div className="text-button dim" onClick={props.clearCart}><i>delete_forever</i><span>Clear Cart</span></div>
-                    <div className="text-button" onClick={props.submitQuote}><i>send</i><span>Submit Quote</span></div>
+                <div className="panel-buttons">
+                    <div className="text-button secondary dim" onClick={props.clearCart}><i>delete_forever</i><span>Clear Cart</span></div>
+                    {submitButton}
                 </div>
             </div>
         </div>

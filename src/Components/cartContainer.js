@@ -41,14 +41,14 @@ class CartContainer extends React.Component {
         if (branchTier < 5) {
             headerBarContent =
                 <ul className="branch-header">
-                    <li className=""><i className="collapser-button" onClick={this.toggle}>{collapsedBody ? "expand_less" : "expand_more"}</i></li>
+                    <li className=""><i className="collapser-button" onClick={this.toggle}>{collapsedBody ? "expand_more" : "expand_less"}</i></li>
                     <li className="cart-col name">{label}</li>
                     <li className="cart-col rate numeric">{branchTierSubTotal.toFixed(2)}</li>
                 </ul>
         } else {
             headerBarContent =
                 <ul className={`kit-complete-header ${parentItemHeader.parent ? "child" : "adult"}`}>
-                    <li className=""><i className="collapser-button" onClick={this.toggle}>{collapsedBody ? "expand_less" : "expand_more"}</i></li>
+                    <li className=""><i className="collapser-button" onClick={this.toggle}>{collapsedBody ? "expand_more" : "expand_less"}</i></li>
                     <li className="cart-col quantity numeric">
                         <div className="super-input-container">
                             <SuperInput

@@ -11,11 +11,11 @@ class SuperDate extends DatePicker {
     }
 
     render() {
-        const { startDate, endDate, setDates } = this.props;
+        const { startDate, endDate, setDates, textColor } = this.props;
         switch (this.props.mode) {
             case "combined":
                 return (
-                    <div className='date-selector'>
+                    <div className={`date-selector`}>
                         <DatePicker
                             selected={startDate}
                             onChange={dates => setDates(dates)}
@@ -28,7 +28,7 @@ class SuperDate extends DatePicker {
                 )
             case "start":
                 return (
-                    <div className='date-selector'>
+                    <div className={`date-selector ${textColor}`}>
                         <div className="super-label">Start</div>
                         <DatePicker
                             selected={startDate}
@@ -41,7 +41,7 @@ class SuperDate extends DatePicker {
                 )
             case "end":
                 return (
-                    <div className='date-selector'>
+                    <div className={`date-selector ${textColor}`}>
                         <div className="super-label">End</div>
                         <DatePicker
                             selected={endDate}

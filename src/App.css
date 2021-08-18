@@ -1,4 +1,9 @@
+@import './branding.css';
+
 /* ################## top-level styling ################## */
+html, body, #root {
+  background-color: hsl(var(--background-hue), var(--background-sat), var(--background-lum));
+}
 
 .App {
   display: flex;
@@ -11,8 +16,7 @@
 }
 
 header {
-  background-image: var(--brand-fade);
-  color: white;
+  background-color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
   overflow: hidden;
   flex: 0 0 3em;
   width: 100%;
@@ -38,7 +42,6 @@ article {
 .column {
   display: flex;
   flex-flow: column;
-  color: white;
   overflow: hidden;
 }
 .column:not(:last-child) {
@@ -58,10 +61,11 @@ article {
 }
 
 .column.left {
-  background-color: var(--brand-color);
+  background-color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
   min-width: 300px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   border-radius: 7px;
+  z-index: 1;
 }
 
 .column.center{
@@ -75,45 +79,7 @@ article {
 }
 
 .column .param-set {
-  border-bottom: 1px solid white;
-}
-
-.slide-panel {
-  position: absolute;
-  display: flex;
-  flex-flow: column;
-  transition: right 0.2s ease;
-  height: calc(100% - 2em);
-  width: 400px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  border-radius: 7px 0 0 7px;
-  background-color: var(--brand-dark);
-}
-
-.slide-panel.in {
-  right: 0%;
-}
-.slide-panel.out {
-  right: -100%;
-}
-
-.slide-panel-switch{
-  position: absolute;
-  display: flex;
-  top: 1px;
-  right: 0px;
-  padding: 0.25em;
-  z-index: 2;
-  background-color: var(--brand-dark);
-  color: white;
-  border-radius: 7px 0 0 7px;
-  cursor: pointer;
-  margin-top: 1.75em;
-  font-size: 1.5em;
-}
-
-.slide-panel-switch i {
-  padding: 3px 0.5em 0 0;
+  border-bottom: 1px solid;
 }
 
 .text-button {
@@ -121,17 +87,111 @@ article {
   padding: 16px;
   display: flex;
   justify-content:center;
+  --button-hue: var(--primary-hue);
+  --button-sat: var(--primary-sat);
+  --button-lum: var(--primary-lum);
+  --button-text-color: var(--primary-contrast);
+  background-color: hsl(var(--button-hue), var(--button-sat), var(--button-lum));
+  color: var(--button-text-color);
 }
 .text-button:hover {
-  /* color: var(--brand-dark); */
-  background-color: rgba(255,255,255,0.2) !important;
+  background-color: hsl(var(--button-hue), var(--button-sat), calc(var(--button-lum) + 15%));
 }
 .text-button.dim {
-  background-color: rgba(0,0,0,0.3);
+  --button-lum: 30%;
 }
+.text-button.disabled {
+  cursor: not-allowed;
+  --button-sat: 0%;
+}
+.text-button.secondary {
+  --button-hue: var(--secondary-hue);
+  --button-text-color: var(--secondary-contrast);
+}
+
 .text-button ~ .text-button {
   border-left: 1px solid white;
 }
+
+
+/* ################## modal styling ################## */
+
+.modal-layer {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor:ns-resize;
+  width: 100%;
+  height: 100%;
+  background-color: hsla(0,0%,var(--background-max),0.5);
+}
+
+.modal-body {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+}
+
+.modal-container {
+  overflow: hidden;
+  border-radius: 7px;
+  background-color: hsl(var(--background-hue), var(--background-sat), var(--background-lum));
+  color: var(--background-contrast);
+  z-index: 100;
+}
+
+.modal-container .panel-buttons {
+  background-color: var(--brand-dark);
+}
+
+.modal-header {
+  font-size: 1.25em;
+  padding: 1em;
+  background-color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
+  color: var(--primary-contrast);
+}
+
+#submitQuote .input-set {
+  width: 200px;
+}
+
+.input-set {
+  flex: 1;
+  display: flex;
+  flex-flow:column;
+  margin: 5px;
+}
+.input-set-label {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.input-set > input, .input-set > textarea {
+  flex: 1;
+  border: none;
+  background-color: hsla(0,0%,var(--background-max),0.1);
+  padding: 0.5em;
+  border-radius:3px;
+  color: var(--background-contrast);
+}
+
+.input-set.textarea {
+  flex: 2;
+}
+
+input.fault {
+  border: 1px solid red;
+}
+
 
 /* ################## navigation styling ################## */
 
@@ -153,7 +213,6 @@ nav li {
 }
 nav li:hover{
   background-color: white;
-  color: #0cf;
   cursor: pointer;
 }
 
@@ -211,9 +270,9 @@ nav .main-nav {
 }
 
 .super-label {
-  color: rgba(255,255,255,0.85);
   font-size: 0.75em;
   text-align:center;
+  font-family: 'Barlow Condensed', sans-serif;
 }
 
 
@@ -228,7 +287,8 @@ nav .main-nav {
 
 .quantity-control {
   text-align: center;
-  border: 2px solid white;
+  border: 2px solid;
+  border-color: hsl(0, 100%, var(--background-max));
   border-radius: 3px;
   display: flex;
   width: 90px;
@@ -236,15 +296,18 @@ nav .main-nav {
 }
 .quantity-control .btn {
   font-size: 14px;
+  color: black;
   background-color: white;
-  color: var(--background);
 }
 .quantity-control .btn:hover {
+  color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
   background-color: white;
-  color: var(--background);
 }
 .quantity-control .btn.inactive {
   background-color: grey;
+}
+.quantity-control .btn.inactive:hover {
+  color: black;
 }
 .quantity-control > * {
   display: flex;
@@ -264,8 +327,9 @@ nav .main-nav {
 }
 
 .search-field > input {
-  background-image: linear-gradient(to right, var(--brand-color), var(--brand-dark));
-  color: white;
+  background-image: linear-gradient(to right, 
+                                    hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lum) + 10%)), 
+                                    hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lum) - 10%)));
   height: 2em;
   border-radius: 7px;
   font-size: 16px;
@@ -275,9 +339,9 @@ nav .main-nav {
   border: 1px solid var(--brand-dark);
 }
 .search-field > input:focus{
-  background-color: rgba(0,153,255,0.25);
+  /* color: var(--background-max); */
+  background-color: hsla(var(--primary-hue), var(--primary-sat), var(--primary-lum), 0.2);
   background-image: none;
-  color: white;
 }
 
 .search-field .radio-set {
@@ -287,7 +351,6 @@ nav .main-nav {
 }
 
 .search-field .radio-option {
-  color: var(--brand-dark);
   border: 1px solid var(--brand-dark);
   font-size: 1.21em;
   flex: 0;
@@ -295,7 +358,6 @@ nav .main-nav {
 }
 .search-field .radio-option.checked {
   background-color: var(--brand-dark);
-  color: white;
   border: none;
 }
 
@@ -308,6 +370,10 @@ nav .main-nav {
   justify-content: flex-end;
 }
 
+.catalog .dbw-thead li {
+  border-bottom: 1px solid var(--background-contrast);
+}
+
 
 /* ################## cart styling ################## */
 
@@ -316,23 +382,26 @@ nav .main-nav {
 }
 
 .branch-container.show {
-  background-color: hsla(0,0%,0%,0.07);
+  background-color: hsla(0,0%,var(--secondary-max),0.07);
   border-bottom-left-radius: 7px;
 }
 
+.branch-container.show > .content-container {
+  border-top: 1px solid var(--secondary-contrast);
+}
+
 .branch-header {
-  color: white;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 24px;
   padding: 7px 0;
-  border-bottom: 1px solid white;
 }
 
-.cart-container {
+.cart {
   display: flex;
   flex-flow: column;
   flex: 1;
   overflow: hidden;
+  color: var(--secondary-contrast);
 }
 
 .cart-contents {
@@ -417,17 +486,17 @@ nav .main-nav {
   flex: 1;
 }
 
-.cart-submit {
+.panel-buttons {
   display: flex;
 }
-.cart-submit > * {
+.panel-buttons > * {
   flex: 1;
 }
 
 .cart-summary {
   flex-flow: column;
-  color: var(--brand-dark);
-  background-color: white;
+  background-color: hsl(0, 100%, var(--background-max));
+  color: hsl(0, 100%, var(--background-min));
   font-size: 20px;
 }
 
@@ -445,11 +514,11 @@ nav .main-nav {
 }
 
 .kit-complete {
-  border-left: 1px solid white;
+  border-left: 1px solid var(--secondary-contrast);
 }
 
 .kit-complete-header {
-  background-color: rgba(0,0,0,0.3);;
+  background-color: hsla(0,0%,var(--secondary-max),0.1);
 }
 
 .option {
@@ -458,6 +527,49 @@ nav .main-nav {
 .adult > .quantity, .child.option > .quantity {
   background-color: hsla(0,0%,0%,0.15);
   border-radius: 3px;
+}
+
+.cart .dbw-thead li {
+  border-bottom: 1px solid var(--secondary-contrast);
+}
+
+.slide-panel {
+  --test: 50;
+  position: absolute;
+  display: flex;
+  flex-flow: column;
+  transition: right 0.2s ease;
+  height: calc(100% - 2em);
+  width: 400px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  border-radius: 7px 0 0 7px;
+  background-color: hsl(var(--secondary-hue), 100%, 50%);
+}
+
+.slide-panel.in {
+  right: 0%;
+}
+.slide-panel.out {
+  right: -100%;
+}
+
+.slide-panel-switch{
+  position: absolute;
+  display: flex;
+  top: 1px;
+  right: 0px;
+  padding: 0.25em;
+  z-index: 2;
+  background-color: hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
+  color: var(--secondary-contrast);
+  border-radius: 7px 0 0 7px;
+  cursor: pointer;
+  margin-top: 1.75em;
+  font-size: 1.5em;
+}
+
+.slide-panel-switch i {
+  padding: 3px 0.5em 0 0;
 }
 
 /* ################## selector styling ################## */
@@ -483,16 +595,14 @@ nav .main-nav {
   flex: 1;
   display: flex;
   justify-content: center;
-  color: rgba(255,255,255,0.75);
   cursor: pointer;
   padding: 0.4em;
   user-select: none;
   border-radius: 7px;
 }
 .radio-list .checked {
-  color: white;
   font-weight: 700;
-  border: 1px solid white;
+  border: 1px solid;
 }
 
 .radio-set {
@@ -518,7 +628,6 @@ nav .main-nav {
 
 .date-selector input {
   background-color: transparent;
-  color: white;
   font-size: 1em;
   text-align: left;
   border: none;
@@ -533,6 +642,13 @@ nav .main-nav {
   background-color: rgba(0,0,0,0.2);
   outline: none;
   cursor: text;
+}
+
+.date-selector.white input {
+  color: white;
+}
+.date-selector.black input{
+  color: black;
 }
 
 .react-datepicker-wrapper input {
@@ -558,7 +674,6 @@ input.super-input {
   'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
   sans-serif, -apple-system, BlinkMacSystemFont;
   background-color: transparent;
-  color: var(--brand-color);
   border: none;
   width: 100%;
 }
@@ -573,19 +688,19 @@ input.super-input {
 /* ################## table/grid styling ################## */
 
 .catalog-item-container {
-  background-color: rgba(255,255,255,0.1);
+  background-color: hsla(0,100%,var(--background-max),0.1);
   border-radius: 7px;
   overflow: hidden;
   margin: 0 2px 2px 0;
 }
 
 .catalog-item-container:hover {
-  background-color: rgba(255,255,255,0.2)
+  background-color: hsla(0,100%,var(--background-max),0.2);
 }
 
 .row-expander.btn {
   /* border: 1px solid var(--brand-color); */
-  background-color: var(--brand-color);
+  background-color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
 }
 
 .catalog-item-elements {
@@ -605,7 +720,7 @@ input.super-input {
 }
 
 .row-expander.btn:hover {
-  background-color: var(--brand-color);
+  background-color: hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lum) + 10%));
 }
 
 .catalog-item-elements li {
@@ -714,7 +829,7 @@ input.super-input {
   font-size: 1.25em;
 }
 .dbw-thead li {
-  border-bottom: 1px solid white;
+  /* border-bottom set by component */
 }
 
 .dbw-tbody {
@@ -736,11 +851,11 @@ input.super-input {
   width: 100px
 }
 .dbw-table .item-rate {
-  order: 4;
+  order: 2;
   width: 75px;
 }
 .dbw-table .item-image {
-  order: 2;
+  order: 3;
   width: 100px;
   display: flex;
   justify-content: center;
@@ -778,7 +893,6 @@ input.super-input {
 }
 
 .loader-text {
-  color: white;
   text-align:center;
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: 3px;
@@ -799,7 +913,7 @@ input.super-input {
 .blip {
   animation: pulse 1s infinite;
   animation-timing-function: ease-out;
-  background-color: white;
+  background-color: var(--background-contrast);
   border-radius: 50px;
   height: 10px;
   width: 10px;

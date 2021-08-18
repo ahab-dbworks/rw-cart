@@ -40,7 +40,7 @@ class CatalogContainer extends React.Component {
     }
 
     render() {
-        const { address, header, cart, loader, addItemToCart } = this.props;
+        const { address, header, cart, loader, addItemToCart, backgroundContrast } = this.props;
         let rowIndex, updateSubRows = undefined;
         if (this.props.rootParent) {
             updateSubRows = this.updateSubRows;

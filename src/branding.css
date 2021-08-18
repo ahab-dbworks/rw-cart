@@ -1,0 +1,11 @@
+body {
+    --primary-hue:46;
+    --primary-sat:100%;
+    --primary-lum:50%;
+    --secondary-hue:204;
+    --secondary-sat:100%;
+    --secondary-lum:50%;
+    --background-hue:204;
+    --background-sat:1%;
+    --background-lum:10%;
+}

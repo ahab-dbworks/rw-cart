@@ -49,7 +49,6 @@ class Catalog extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { activity, warehouse, inventoryType, category } = this.props;
         if (!_.isEqual(this.props, prevProps)) {
             console.log("a catalog prop has changed")
             
@@ -66,7 +65,7 @@ class Catalog extends React.Component {
 
     render() {
         const { displayMode, content, searchField } = this.state;
-        const { cart, getAccessories, addItemToCart, activity, warehouse, inventoryType, category } = this.props;
+        const { cart, getAccessories, addItemToCart, activity, warehouse, inventoryType, category, backgroundContrast } = this.props;
         let searchBar = undefined;
         let catalogDisplay = undefined;
 

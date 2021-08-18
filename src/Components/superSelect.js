@@ -45,7 +45,7 @@ class SuperSelect extends Select {
 
     render() {
         const { mode, options, resetValues } = this.state;
-        const { name, action, searchable, placeholder, value } = this.props;
+        const { name, action, searchable, placeholder, value, textColor } = this.props;
         const customStyles = {
             option: (provided, state) => ({
                 ...provided,
@@ -56,27 +56,29 @@ class SuperSelect extends Select {
                 display: 'flex',
             }),
             placeholder: () => ({
-                color: 'rgba(255,255,255,0.75)',
+                color: textColor,
+                opacity: 0.5,
                 fontStyle: 'italic'
             }),
             indicatorSeparator: (provided) => ({
                 ...provided,
-                backgroundColor: 'rgba(255,255,255,0.75)'
+                backgroundColor: textColor
             }),
             dropdownIndicator: (provided, { selectProps: { isLoading }}) => ({
                 ...provided,
-                color: isLoading ? 'rgba(255,255,255,0.75)' : 'white',
+                color: textColor,
+                opacity: isLoading ? 0.5 : 1,
                 "&:hover": {
                     color: ''
                 },
                 padding: '0.5em 0 0.5em 1em'
             }),
             singleValue: () => ({
-                color: 'white',
+                color: textColor,
             }),
             loadingIndicator: (provided) => ({
                 ...provided,
-                color: 'white'
+                color: textColor
             }),
             valueContainer: (provided) => ({
                 ...provided,

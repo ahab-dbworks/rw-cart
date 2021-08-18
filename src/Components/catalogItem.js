@@ -73,7 +73,7 @@ const CatalogItem = (props) => {
         )
     }
 
-    const { rowContent, cart, loader, addItemToCart, updateSubRows, rowIndex, rootParent } = props;
+    const { rowContent, cart, loader, addItemToCart, updateSubRows, rowIndex, rootParent, backgroundContrast } = props;
     const rowHTML = itemRow(rowContent);
     let rowTab = null;
     let rowOutput = undefined;
