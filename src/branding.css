@@ -1,12 +1,12 @@
 body {
-    --primary-hue:46;
-    --primary-sat:100%;
-    --primary-lum:50%;
-    --secondary-hue:204;
-    --secondary-sat:100%;
-    --secondary-lum:50%;
-    --background-hue:46;
-    --background-sat:100%;
-    --background-lum:50%;
+    --primary-hue:219;
+    --primary-sat:74%;
+    --primary-lum:36%;
+    --secondary-hue:138;
+    --secondary-sat:69%;
+    --secondary-lum:33%;
+    --background-hue:0;
+    --background-sat:0%;
+    --background-lum:100%;
     --shadow: 0 0 10px rgba(0,0,0,0.5);
 }
