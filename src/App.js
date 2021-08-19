@@ -7,6 +7,7 @@ import SuperDate from './Components/superDate';
 import RadioButton from './Components/radio';
 import Loader from './loader';
 import SubmitForm from './Components/submitForm';
+import Colorz from './Components/Colorz';
 import _ from 'lodash';
 
 
@@ -58,24 +59,25 @@ class App extends React.Component {
       endDate: new Date(),
       quotePeriod: 1,
       cartMode: "out",
-    };
-    this.branding = {
-      primary: {
-        hue: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-hue')),
-        sat: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-sat').slice(0,-1)),
-        lum: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-lum').slice(0,-1))
-      },
-      secondary: {
-        hue: parseInt(getComputedStyle(document.body).getPropertyValue('--secondary-hue')),
-        sat: parseInt(getComputedStyle(document.body).getPropertyValue('--secondary-sat').slice(0,-1)),
-        lum: parseInt(getComputedStyle(document.body).getPropertyValue('--secondary-lum').slice(0,-1))
-      },
-      background: {
-        hue: parseInt(getComputedStyle(document.body).getPropertyValue('--background-hue')),
-        sat: parseInt(getComputedStyle(document.body).getPropertyValue('--background-sat').slice(0,-1)),
-        lum: parseInt(getComputedStyle(document.body).getPropertyValue('--background-lum').slice(0,-1))
+      showColorModal: false,
+      colors: {
+        primary: {
+          hue: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-hue')),
+          sat: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-sat').slice(0,-1)),
+          lum: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-lum').slice(0,-1))
+        },
+        secondary: {
+          hue: parseInt(getComputedStyle(document.body).getPropertyValue('--secondary-hue')),
+          sat: parseInt(getComputedStyle(document.body).getPropertyValue('--secondary-sat').slice(0,-1)),
+          lum: parseInt(getComputedStyle(document.body).getPropertyValue('--secondary-lum').slice(0,-1))
+        },
+        background: {
+          hue: parseInt(getComputedStyle(document.body).getPropertyValue('--background-hue')),
+          sat: parseInt(getComputedStyle(document.body).getPropertyValue('--background-sat').slice(0,-1)),
+          lum: parseInt(getComputedStyle(document.body).getPropertyValue('--background-lum').slice(0,-1))
+        }
       }
-    }
+    };
   }
 
   addItemToCart = async(item, addedItemBranchChain, q) => {
@@ -428,19 +430,56 @@ class App extends React.Component {
     })
   }
 
-  checkAvailability = (inventoryId, start, end) => {
-    fetch(`${APIURL}/inventoryavailability/getinventoryavailability`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.state.credentials.access_token}`,
-        'content-type': 'application/json'
-      },
-      body: {
-        InventoryId: inventoryId,
-        Warehouse: this.state.warehouse,
-        FromDate: start,
-        ToDate: end
+  // checkAvailability = (inventoryId, start, end) => {
+  //   fetch(`${APIURL}/inventoryavailability/getinventoryavailability`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Authorization': `Bearer ${this.state.credentials.access_token}`,
+  //       'content-type': 'application/json'
+  //     },
+  //     body: {
+  //       InventoryId: inventoryId,
+  //       Warehouse: this.state.warehouse,
+  //       FromDate: start,
+  //       ToDate: end
+  //     }
+  //   })
+  // }
+
+  showColorsModal = () => {
+    this.setState({ showColorsModal: !this.state.showColorsModal });
+  }
+
+  setColors = (colors) => {
+    Object.keys(colors).forEach(color => {
+      colors[color].contrast = "black";
+      colors[color].max = "0%";
+      colors[color].min = "100%";
+      const { hue, lum } = colors[color];
+      if (lum < 40) {
+        colors[color].contrast = "white";
+        colors[color].max = "100%";
+        colors[color].min = "0%";
+      } else if (lum < 70) {
+        if (hue < 45 || hue > 185) {
+          colors[color].contrast = "white";
+          colors[color].max = "100%";
+          colors[color].min = "0%";
+        }
       }
+    })
+    this.setState({ colors: colors });
+  }
+
+  renderColors = () => {
+    const { colors } = this.state;
+    Object.keys(colors).forEach(color => {
+      document.body.style.setProperty(`--${color}-hue`, colors[color].hue);
+      document.body.style.setProperty(`--${color}-sat`, colors[color].sat + "%");
+      document.body.style.setProperty(`--${color}-lum`, colors[color].lum + "%");
+      document.body.style.setProperty(`--${color}-contrast`, colors[color].contrast);
+      document.body.style.setProperty(`--${color}-max`, colors[color].max);
+      document.body.style.setProperty(`--${color}-min`, colors[color].min);
     })
   }
 
@@ -465,40 +504,19 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    Object.keys(this.branding).forEach(color => {
-      this.branding[color].contrast = "black";
-      this.branding[color].max = "0%";
-      this.branding[color].min = "100%";
-      const { hue, lum } = this.branding[color];
-      if (lum < 40) {
-        this.branding[color].contrast = "white";
-        this.branding[color].max = "100%";
-        this.branding[color].min = "0%";
-      } else if (lum < 70) {
-        if (hue < 45 || hue > 185) {
-          this.branding[color].contrast = "white";
-          this.branding[color].max = "100%";
-          this.branding[color].min = "0%";
-        }
-      }
-      document.body.style.setProperty(`--${color}-contrast`, this.branding[color].contrast);
-      document.body.style.setProperty(`--${color}-max`, this.branding[color].max);
-      document.body.style.setProperty(`--${color}-min`, this.branding[color].min);
-    })
+    this.setColors(this.state.colors);
     this.getCredentials();
   } 
 
   render() {
-    const { route, mainModal, warehouse, activity, inventoryType, category, subcategory, startDate, endDate, quotePeriod, cartList, cartMode } = this.state;
+    const { route, mainModal, warehouse, activity, inventoryType, category, subcategory, startDate, endDate, quotePeriod, cartList, cartMode, showColorsModal, colors } = this.state;
     //console.log("App render with state:", this.state);
     //
-    let headerSection, paramColumn, catalogColumn, cartColumn, mainApp = undefined;
+    let headerSection, colorsModal, paramColumn, catalogColumn, cartColumn, mainApp = undefined;
     //
 
-    const primaryContrast = this.branding.primary.contrast;
-    const secondaryContrast = this.branding.secondary.contrast;
-    const backgroundContrast = this.branding.background.contrast;
-
+    this.renderColors();
+    const { primary, secondary, background } = colors;
     //
     switch (route) {
       case 'home':
@@ -521,8 +539,9 @@ class App extends React.Component {
         if (this.state.credentials) {
           switch (this.state.credentials.statuscode) {
             case 0:
+              colorsModal = showColorsModal ? <Colorz colors={colors} setColors={this.setColors} /> : "";
               paramColumn =
-                <div className="column left" style={{ color: primaryContrast, borderColor: primaryContrast }}>
+                <div className="column left" style={{ color: primary.contrast, borderColor: primary.contrast }}>
                   <div className="column-header param-set">
                     <h1><i>tune</i>PARAMETERS</h1>
                   </div>
@@ -532,14 +551,14 @@ class App extends React.Component {
                       endDate={endDate}
                       mode="start"
                       setDates={this.setDates}
-                      textColor={primaryContrast}
+                      textColor={primary.contrast}
                     />
                     <SuperDate
                       startDate={startDate}
                       endDate={endDate}
                       mode="end"
                       setDates={this.setDates}
-                      textColor={primaryContrast}
+                      textColor={primary.contrast}
                     />
                   </div>
                   <div className="param-set">
@@ -558,7 +577,7 @@ class App extends React.Component {
                       reloadOn={[activity]}
                       placeholder="Select a Warehouse"
                       searchable={false}
-                      textColor={primaryContrast}
+                      textColor={primary.contrast}
                       preload
                     />
                   </div>
@@ -570,7 +589,7 @@ class App extends React.Component {
                       reloadOn={[activity, warehouse]}
                       placeholder="Select an Inventory Type"
                       searchable={true}
-                      textColor={primaryContrast}
+                      textColor={primary.contrast}
                       value={inventoryType}
                     // preload
                     />
@@ -583,14 +602,14 @@ class App extends React.Component {
                       reloadOn={[activity, warehouse, inventoryType]}
                       placeholder="Select a Category"
                       searchable={true}
-                      textColor={primaryContrast}
+                      textColor={primary.contrast}
                       value={category}
                     />
                   </div>
                 </div>
   
               catalogColumn =
-                <div className="column center" style={{ color: backgroundContrast, borderColor: backgroundContrast }}>
+                <div className="column center" style={{ color: background.contrast, borderColor: background.contrast }}>
                   <div className="column-header param set">
                     <h1><i>menu_book</i>{activity.label.toUpperCase()} CATALOG</h1>
                   </div>
@@ -605,7 +624,6 @@ class App extends React.Component {
                     endDate={endDate}
                     addItemToCart={this.addItemToCart}
                     cart={cartList}
-                    backgroundContrast={backgroundContrast}
                   />
                 </div>
   
@@ -625,6 +643,7 @@ class App extends React.Component {
               
               mainApp =
                 <article>
+                  {colorsModal}
                   {mainModal}
                   <div className="body-margin"></div>
                   <div className="body-main">
@@ -637,13 +656,13 @@ class App extends React.Component {
                 </article>
               break;
             case undefined:
-              catalogColumn = <div className="modal"><Loader textColor={backgroundContrast}/></div>
+              catalogColumn = <div className="modal"><Loader textColor={background.contrast}/></div>
               break;
             default:
               console.log("there was a problem loading your credentials");
           }
         } else {
-          mainApp = <div className="modal abs"><Loader input="CONNECTING TO DATABASE" textColor={backgroundContrast}/></div>
+          mainApp = <div className="modal abs"><Loader input="CONNECTING TO DATABASE" textColor={background.contrast}/></div>
         }
         break;
       default:
@@ -658,10 +677,10 @@ class App extends React.Component {
 
             </div>
             <div className="main-nav">
-              <ul style={{color: primaryContrast}}>
+              <ul style={{color: primary.contrast}}>
                 <li onClick={() => this.changeRoute('catalog')}>Get a Quote</li>
                 <li>Call an Agent</li>
-                <li>Our Website</li>
+                <li onClick={this.showColorsModal}>Our Website</li>
                 <li>News</li>
               </ul>
             </div>

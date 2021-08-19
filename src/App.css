@@ -2,7 +2,7 @@
 
 /* ################## top-level styling ################## */
 html, body, #root {
-  background-color: hsl(var(--background-hue), var(--background-sat), var(--background-lum));
+  background-color: hsl(var(--background-hue), var(--background-sat), calc(var(--background-lum) - 5%));
 }
 
 .App {
@@ -63,7 +63,7 @@ article {
 .column.left {
   background-color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
   min-width: 300px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow);
   border-radius: 7px;
   z-index: 1;
 }
@@ -106,6 +106,8 @@ article {
 }
 .text-button.secondary {
   --button-hue: var(--secondary-hue);
+  --button-sat: var(--secondary-sat);
+  --button-lum: var(--secondary-lum);
   --button-text-color: var(--secondary-contrast);
 }
 
@@ -116,6 +118,29 @@ article {
 
 /* ################## modal styling ################## */
 
+
+
+.modal {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.draggable {
+  position: absolute;
+  width: auto;
+  height: auto;
+}
+
+.modal.abs {
+  top: 0;
+  left: 0;
+  position: absolute;
+  z-index: 0;
+}
+
 .modal-layer {
   position: absolute;
   top: 0px;
@@ -123,14 +148,12 @@ article {
   width: 100%;
   height: 100%;
   z-index: 100;
-
 }
 
 .modal-backdrop {
   position: absolute;
   top: 0;
   left: 0;
-  cursor:ns-resize;
   width: 100%;
   height: 100%;
   background-color: hsla(0,0%,var(--background-max),0.5);
@@ -148,6 +171,7 @@ article {
   background-color: hsl(var(--background-hue), var(--background-sat), var(--background-lum));
   color: var(--background-contrast);
   z-index: 100;
+  box-shadow: var(--shadow);
 }
 
 .modal-container .panel-buttons {
@@ -304,7 +328,7 @@ nav .main-nav {
   background-color: white;
 }
 .quantity-control .btn.inactive {
-  background-color: grey;
+  background-color: hsla(0,0%,var(--background-max),0.3);
 }
 .quantity-control .btn.inactive:hover {
   color: black;
@@ -343,6 +367,9 @@ nav .main-nav {
   background-color: hsla(var(--primary-hue), var(--primary-sat), var(--primary-lum), 0.2);
   background-image: none;
 }
+.search-field > input::placeholder{
+  color: hsla(0,100%, var(--primary-max), 0.5);
+}
 
 .search-field .radio-set {
   /* max-width: 100px; */
@@ -351,13 +378,14 @@ nav .main-nav {
 }
 
 .search-field .radio-option {
-  border: 1px solid var(--brand-dark);
+  border: 1px solid var(--background-contrast);
   font-size: 1.21em;
   flex: 0;
   margin-left: 0.5em;
 }
 .search-field .radio-option.checked {
-  background-color: var(--brand-dark);
+  background-color: hsl(var(--primary-hue),var(--primary-sat),var(--primary-lum));
+  color: var(--primary-contrast);
   border: none;
 }
 
@@ -543,7 +571,7 @@ nav .main-nav {
   width: 400px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   border-radius: 7px 0 0 7px;
-  background-color: hsl(var(--secondary-hue), 100%, 50%);
+  background-color: hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
 }
 
 .slide-panel.in {
@@ -572,6 +600,7 @@ nav .main-nav {
   padding: 3px 0.5em 0 0;
 }
 
+
 /* ################## selector styling ################## */
 
 .selector-set {
@@ -580,6 +609,18 @@ nav .main-nav {
 
 .selector-set > .super-label {
   display: none;
+}
+
+
+/* ################## colorz styling ################## */
+
+.color-node {
+  width: 200px;
+  padding: 5px;
+}
+
+.color-node > label {
+  margin-left: 10px;
 }
 
 
@@ -699,8 +740,8 @@ input.super-input {
 }
 
 .row-expander.btn {
-  /* border: 1px solid var(--brand-color); */
   background-color: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lum));
+  color: var(--primary-contrast);
 }
 
 .catalog-item-elements {
@@ -730,7 +771,7 @@ input.super-input {
 .catalog-item-elements .item-image > * {
   border-radius: 7px;
   overflow: hidden;
-  border: 1px solid rgba(0,153,255,0.5);
+  border: 1px solid hsla(var(--secondary-hue), var(--secondary-sat),var(--secondary-lum), 0.7);
 }
 
 .catalog-item-elements li:nth-child(2) > * {

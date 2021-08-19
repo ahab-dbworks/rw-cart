@@ -65,7 +65,7 @@ class Catalog extends React.Component {
 
     render() {
         const { displayMode, content, searchField } = this.state;
-        const { cart, getAccessories, addItemToCart, activity, warehouse, inventoryType, category, backgroundContrast } = this.props;
+        const { cart, getAccessories, addItemToCart, activity, warehouse, inventoryType, category } = this.props;
         let searchBar = undefined;
         let catalogDisplay = undefined;
 

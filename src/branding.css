@@ -5,7 +5,8 @@ body {
     --secondary-hue:204;
     --secondary-sat:100%;
     --secondary-lum:50%;
-    --background-hue:204;
-    --background-sat:1%;
-    --background-lum:10%;
+    --background-hue:46;
+    --background-sat:100%;
+    --background-lum:50%;
+    --shadow: 0 0 10px rgba(0,0,0,0.5);
 }
