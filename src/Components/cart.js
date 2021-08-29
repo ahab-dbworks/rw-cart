@@ -40,6 +40,7 @@ const Cart = (props) => {
                                 content={topTier[key]}
                                 isOnlyChild={Object.keys(topTier).length === 1}
                                 updateCart={props.updateCart}
+                                addNote={props.addNote}
                             />
                         )
                     })
@@ -62,13 +63,13 @@ const Cart = (props) => {
                 }
             </div>
             <div className={`cart slide-panel ${props.cartMode}`}>
-                <div className="column-header param-set">
+                <div className="column-header column-segment">
                     <h1><i>shopping_cart</i>CART</h1>
                 </div>
-                <div className="cart-contents param-set">
+                <div className="cart-contents column-segment">
                     {cartBody}
                 </div>
-                <div className="cart-summary param-set barlow">
+                <div className="cart-summary column-segment barlow">
                     <div className="cart-summary-row">
                         <span>Daily Subtotal:</span>
                         $

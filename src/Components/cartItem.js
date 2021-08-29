@@ -5,14 +5,14 @@ import SuperInput from './superInput';
 const CartItem = (props) => {
     const { branchTier, label, content, isOnlyChild } = props;
 
-    let parentItemHeader = undefined;
+    let parentItem = undefined;
     if (content.length > 1 || branchTier < 5) {
         let group = [];
         content.forEach(item => {
             if (item.branchChain.length > branchTier) {
                 group.push(item);
             } else {
-                parentItemHeader = item;
+                parentItem = item;
             }
         })
         return (
@@ -20,10 +20,11 @@ const CartItem = (props) => {
                 <CartContainer
                     branchTier={branchTier}
                     label={label}
-                    parentItemHeader={parentItemHeader}
+                    parentItem={parentItem}
                     items={group}
                     isOnlyChild={isOnlyChild}
                     updateCart={props.updateCart}
+                    addNote={props.addNote}
                 />
             </div>
         )
@@ -33,19 +34,22 @@ const CartItem = (props) => {
             itemQuantity =
                 <SuperInput
                     value={content[0].quantity.actual}
-                    updateValue={(q) => props.updateCart(content[0].details, content[0].branchChain.join("~"), q)}
+                    updateValue={(q) => props.updateCart(content[0], q)}
                 />
         }
         return (
             <div key={label} className="cart-item">
                 <ul className={`${content[0].isOption ? "option" : ""} ${content[0].parent ? "child" : "adult"}`}>
-                    <li className="cart-col">•</li>
-                    <li className="cart-col quantity numeric">
+                    <li className="cart-col bullet">•</li>
+                    <li className="cart-col quantity">
                         <div className="super-input-container">
                             {itemQuantity}
                         </div>
                     </li>
-                    <li className="cart-col name">{content[0].name}</li>
+                    <li className="cart-col name" onClick={() => props.addNote(content[0])}>
+                        {(content[0].note != "" ? <i>sticky_note_2</i> : "")}
+                        <div>{content[0].description}</div>
+                    </li>
                     <li className="cart-col rate numeric">{content[0].rate.toFixed(2)}</li>
                 </ul>
             </div>

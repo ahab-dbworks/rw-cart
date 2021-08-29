@@ -7,7 +7,9 @@ import SuperDate from './Components/superDate';
 import RadioButton from './Components/radio';
 import Loader from './loader';
 import SubmitForm from './Components/submitForm';
+import PictureModal from './Components/PictureModal';
 import Colorz from './Components/Colorz';
+import NoteModal from './Components/noteModal';
 import _ from 'lodash';
 
 
@@ -80,61 +82,41 @@ class App extends React.Component {
     };
   }
 
-  addItemToCart = async(item, addedItemBranchChain, q) => {
+  addItemToCart = async(item, q) => {
     const { cartList, activity, warehouse, inventoryType, category } = this.state;
     const popCart = _.isEmpty(cartList)
+
     const loadAccessories = async (parent) => {
-      const accessories = await this.getAccessories(parent.id);
-      const accessoryList = await Promise.all(accessories.Rows.map(async (acc, i) => {
-        return await packageItem(acc, i, parent);
+      const accessories = await this.getAccessories(parent);
+      await Promise.all(accessories.map(async (acc, i) => {
+        await quantizeCartItem(acc);
       }))
     }
-    const packageItem = async (item, index, parent) => {
-      const defaultQuantity = parent ? item[52] : 1; //item[52] is "defaultQuantity"
-      let itemPackage = {
-        branchChain: parent ? [...parent.branchChain, item[7] + "x" + item[0]] : [activity.name, warehouse.name, inventoryType.name, category.name, item[7]],
-        quantity: {
-          actual: item[51] ? 0 : Math.ceil(defaultQuantity * q),
-          fraction: item[51] ? 0 : defaultQuantity * q,
-          default: defaultQuantity
-        },
-        available: item[22],
-        details: item,
-        icode: item[5],
-        id: item[2],
-        index: index,
-        name: item[7],
-        parent: parent,
-        rate: item[35],
-        type: item[19],
-        isOption: item[51],
-        isShort: false,
-        activity: activity,
-        warehouse: warehouse,
-        inventoryType: inventoryType,
-        category: category
+    const quantizeCartItem = async (item) => {
+      //package item
+      if (item.type != "ITEM" && item.type != "ACCESSORY") {
+        await loadAccessories(item);
       }
-      if (itemPackage.type != "ITEM" && itemPackage.type != "ACCESSORY") {
-        await loadAccessories(itemPackage);
-      }
-      cartList[itemPackage.branchChain.join("~")] = itemPackage;
+      item.quantity.fraction = item.quantity.default * q;
+      item.quantity.actual = Math.ceil(item.quantity.fraction);
+      cartList[item.address] = item;
     }
 
     // correct q if greater than supply
-    console.log("q is", q, "and availability is", item[22]);
-    q = Math.min(q, item[22]);
+    console.log("q is", q, "and availability is", item.available);
+    q = Math.min(q, item.available);
     
     //add item or update quantity?
-    if (cartList[addedItemBranchChain]) {
+    if (cartList[item.address]) {
       Object.keys(cartList).forEach(key => {
-        if (key.indexOf(addedItemBranchChain) === 0) {
-          if (q <= 0 && !cartList[addedItemBranchChain].isOption) {
+        if (key.indexOf(item.address) === 0) {
+          if (q <= 0 && !cartList[item.address].isOption) {
             delete cartList[key];
           } else {
             // updating fraction value
             if (!cartList[key].isOption) {
               cartList[key].quantity.fraction = (cartList[key].quantity.default * q);
-            } else if (cartList[key].isOption && key === addedItemBranchChain) {
+            } else if (cartList[key].isOption && key === item.address) {
               cartList[key].quantity.fraction = q;
             }
             // correcting negative fraction values
@@ -147,7 +129,7 @@ class App extends React.Component {
         }
       })
     } else {
-      if (!item[51] && q != 0) await packageItem(item);
+      if (!item.isOption && q != 0) await quantizeCartItem(item);
     }
 
     //
@@ -156,6 +138,19 @@ class App extends React.Component {
     }
     console.log("cartList:", cartList);
     this.setState({ cartList: cartList });
+  }
+
+  displayNote = (item) => {
+    const noteModal = <NoteModal item={item} submit={this.addNote} cancel={() => this.setMainModal(null)}/>
+    this.setMainModal(noteModal);
+  }
+  
+  addNote = (item, note) => {
+    const { cartList } = this.state;
+    console.log("adding note to:", item, note);
+    const address = item.branchChain.join("~");
+    cartList[address].note = note;
+    this.setState({ cartList: cartList, mainModal: null });
   }
 
   clearCart = () => {
@@ -169,7 +164,7 @@ class App extends React.Component {
   getCategories = async () => {
     const { credentials, activity, inventoryType } = this.state;
     if (this.state.inventoryType) {
-      this.page = 1;
+      
       const resp = await fetch(`${APIURL}/${activity.name}category/browse`, {
         method: 'POST',
         headers: {
@@ -203,6 +198,47 @@ class App extends React.Component {
       return undefined;
     }
   }
+  
+  getSubCategories = async () => {
+    const { credentials, activity, inventoryType, category } = this.state;
+    if (this.state.inventoryType) {
+      
+      const resp = await fetch(`${APIURL}/subcategory/browse`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${credentials.access_token}`,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          'orderby': 'OrderBy',
+          // 'uniqueids': {'CategoryId':category.id, 'TypeId':inventoryType.id, 'RecType': activity.code}
+          'searchfieldoperators': ['<>', '=', '=', '='],
+          'searchfields': ['Inactive', 'TypeId', 'CategoryId', 'RecType'],
+          'searchfieldtypes': ['Text', 'Text', 'Text', 'Text'],
+          'searchfieldvalues': ['T', `${inventoryType.id}`, `${category.id}`, `${activity.code}`],
+          'searchseparators': [',',',',',',',']
+        })
+      })
+        .catch(err => console.log(err));
+      //
+      const subcategories = await resp.json();
+      console.log("fetched sub-categories:", subcategories);
+      let subcategoryList = {};
+      subcategories.Rows.forEach((subcategory, i) => {
+        subcategoryList[subcategory[0]] = {
+          id: subcategory[0],
+          value: subcategory[0],
+          name: subcategory[1],
+          label: subcategory[1],
+          index: i
+        }
+      });
+      console.log(subcategoryList);
+      return subcategoryList;
+    } else {
+      return undefined;
+    }
+  }
 
   getCredentials = () => {
     fetch(`${APIURL}/jwt`, {
@@ -222,7 +258,7 @@ class App extends React.Component {
   }
 
   getInventory = async () => {
-    const { warehouse, activity, inventoryType, category, startDate, endDate } = this.state;
+    const { warehouse, activity, inventoryType, category, subCategory, startDate, endDate } = this.state;
     if (warehouse && inventoryType && category) {
       const resp = await fetch(`${APIURL}/inventorysearch/search`, {
         method: 'POST',
@@ -238,6 +274,7 @@ class App extends React.Component {
           'AvailableFor': activity.code,
           'InventoryTypeId': inventoryType.id,
           'CategoryId': category.id,
+          'SubcategoryId': (subCategory ? subCategory.id : null),
           'Classifiction': '',
           'FromDate': startDate,
           'ToDate': endDate,
@@ -247,15 +284,19 @@ class App extends React.Component {
         })
       })
         .catch(err => console.log("error:", err));
-      const inventory = await resp.json();
-      console.log("loaded inventory:", inventory);
+      const loadedInventory = await resp.json();
+      console.log("loaded inventory:", loadedInventory);
+      const inventory = loadedInventory.Rows.map((row, i) => {
+        return this.itemObjectBuilder(row, i);
+      });
+      console.log("packaged Inventory:", inventory);
       return inventory;
     } else {
       return null;
     }
   }
 
-  getAccessories = async (parentId) => {
+  getAccessories = async (parent) => {
     const { warehouse, activity, inventoryType, category, startDate, endDate } = this.state;
     if (warehouse && inventoryType && category) {
       const resp = await fetch(`${APIURL}/inventorysearch/accessories`, {
@@ -267,7 +308,7 @@ class App extends React.Component {
         body: JSON.stringify({
           'OrderId': '0000KG53',
           'SessionId': '0000KG53',
-          'Lineage': parentId,
+          'Lineage': parent.inventoryId,
           'WarehouseId': warehouse.id,
           'FromDate': startDate,
           'ToDate': endDate,
@@ -276,12 +317,52 @@ class App extends React.Component {
         })
       })
         .catch(err => console.log("error:", err));
-      const accessories = await resp.json();
-      console.log("loaded accessories:", accessories);
+      const loadedAccessories = await resp.json();
+      console.log("loaded accessories:", loadedAccessories);
+      const accessories = loadedAccessories.Rows.map((row, i) => {
+        return this.itemObjectBuilder(row, i, parent);
+      });
+      console.log("packaged Accessories", accessories);
       return accessories;
     } else {
       return null;
     }
+  }
+
+  itemObjectBuilder = (item, i, parent = null) => {
+    const { activity, warehouse, inventoryType, category, subCategory } = this.state;
+    const defaultQuantity = parent ? item[52] : 1; //item[52] = "default quantity"
+    const itemObject = {
+      activity: activity,
+      warehouse: warehouse,
+      inventoryType: inventoryType,
+      category: category,
+      subCategory: subCategory,
+      //
+      available: item[22],
+      branchChain: parent ? [...parent.branchChain, item[7] + "x" + item[0]] : [activity.name, warehouse.name, inventoryType.name, category.name, item[7]],
+      details: item,
+      iCode: item[5],
+      id: item[0],
+      inventoryId: item[2],
+      imgSrc: item[46],
+      index: i,
+      isOption: item[51],
+      isShort: false,
+      description: item[7],
+      lineage: item[3],
+      note: "",
+      parent: parent,
+      quantity: {
+        actual: 0,
+        fraction: item[51] ? 0 : defaultQuantity, //item[51] = "is option"
+        default: defaultQuantity
+      },
+      rate: item[35],
+      type: item[19]
+    }
+    itemObject.address = itemObject.branchChain.join("~");
+    return itemObject;
   }
 
   getInventoryTypes = async (filter) => {
@@ -348,6 +429,11 @@ class App extends React.Component {
     return warehouseList;
   }
 
+  picPreview = (src, title) => {
+    const picHTML = <PictureModal src={src} title={title} cancel={() => this.setMainModal(null)} />;
+    this.setMainModal(picHTML);
+  }
+
   setMainModal = (modalHTML) => {
     this.setState({ mainModal: modalHTML });
   }
@@ -357,6 +443,14 @@ class App extends React.Component {
       console.log("category not set");
     } else {
       this.setState({ category: e });
+    }
+  }
+
+  setSubCategory = (e) => {
+    if (!e) {
+      console.log("subcategory not set");
+    } else {
+      this.setState({ subCategory: e });
     }
   }
 
@@ -509,7 +603,7 @@ class App extends React.Component {
   } 
 
   render() {
-    const { route, mainModal, warehouse, activity, inventoryType, category, subcategory, startDate, endDate, quotePeriod, cartList, cartMode, showColorsModal, colors } = this.state;
+    const { route, mainModal, warehouse, activity, inventoryType, category, subCategory, startDate, endDate, quotePeriod, cartList, cartMode, showColorsModal, colors } = this.state;
     //console.log("App render with state:", this.state);
     //
     let headerSection, colorsModal, paramColumn, catalogColumn, cartColumn, mainApp = undefined;
@@ -541,76 +635,91 @@ class App extends React.Component {
             case 0:
               colorsModal = showColorsModal ? <Colorz colors={colors} setColors={this.setColors} /> : "";
               paramColumn =
-                <div className="column left" style={{ color: primary.contrast, borderColor: primary.contrast }}>
-                  <div className="column-header param-set">
-                    <h1><i>tune</i>PARAMETERS</h1>
-                  </div>
-                  <div className="param-set">
-                    <SuperDate
-                      startDate={startDate}
-                      endDate={endDate}
-                      mode="start"
-                      setDates={this.setDates}
-                      textColor={primary.contrast}
-                    />
-                    <SuperDate
-                      startDate={startDate}
-                      endDate={endDate}
-                      mode="end"
-                      setDates={this.setDates}
-                      textColor={primary.contrast}
-                    />
-                  </div>
-                  <div className="param-set">
-                    <RadioButton
-                      name="Activity Type"
-                      options={ACTIVITYLIST}
-                      selected={activity.name}
-                      action={this.setActivity}
-                    />
-                  </div>
-                  <div className="param-set">
-                    <SuperSelect
-                      name="warehouse"
-                      loader={this.getWarehouses}
-                      action={this.setWarehouse}
-                      reloadOn={[activity]}
-                      placeholder="Select a Warehouse"
-                      searchable={false}
-                      textColor={primary.contrast}
-                      preload
-                    />
-                  </div>
-                  <div className="param-set">
-                    <SuperSelect
-                      name="Inventory Type"
-                      loader={this.getInventoryTypes}
-                      action={this.setInventoryType}
-                      reloadOn={[activity, warehouse]}
-                      placeholder="Select an Inventory Type"
-                      searchable={true}
-                      textColor={primary.contrast}
-                      value={inventoryType}
-                    // preload
-                    />
-                  </div>
-                  <div className="param-set">
-                    <SuperSelect
-                      name="category"
-                      loader={this.getCategories}
-                      action={this.setCategory}
-                      reloadOn={[activity, warehouse, inventoryType]}
-                      placeholder="Select a Category"
-                      searchable={true}
-                      textColor={primary.contrast}
-                      value={category}
-                    />
+                <div className="column">
+                
+                  <div className="parameters" style={{ color: primary.contrast, borderColor: primary.contrast }}>
+                    <div className="column-header column-segment">
+                      <h1><i>tune</i>PARAMETERS</h1>
+                    </div>
+                    <div className="column-segment">
+                      <SuperDate
+                        startDate={startDate}
+                        endDate={endDate}
+                        mode="start"
+                        setDates={this.setDates}
+                        textColor={primary.contrast}
+                      />
+                      <SuperDate
+                        startDate={startDate}
+                        endDate={endDate}
+                        mode="end"
+                        setDates={this.setDates}
+                        textColor={primary.contrast}
+                      />
+                    </div>
+                    <div className="column-segment">
+                      <RadioButton
+                        name="Activity Type"
+                        options={ACTIVITYLIST}
+                        selected={activity.name}
+                        action={this.setActivity}
+                      />
+                    </div>
+                    <div className="column-segment select">
+                      <SuperSelect
+                        name="warehouse"
+                        loader={this.getWarehouses}
+                        action={this.setWarehouse}
+                        reloadOn={[activity]}
+                        placeholder="Select a Warehouse"
+                        searchable={false}
+                        textColor={primary.contrast}
+                        preload
+                      />
+                    </div>
+                    <div className="column-segment select">
+                      <SuperSelect
+                        name="Inventory Type"
+                        loader={this.getInventoryTypes}
+                        action={this.setInventoryType}
+                        reloadOn={[activity, warehouse]}
+                        placeholder="Select an Inventory Type"
+                        searchable={true}
+                        textColor={primary.contrast}
+                        value={inventoryType}
+                      // preload
+                      />
+                    </div>
+                    <div className="column-segment select">
+                      <SuperSelect
+                        name="category"
+                        loader={this.getCategories}
+                        action={this.setCategory}
+                        reloadOn={[activity, warehouse, inventoryType]}
+                        placeholder="Select a Category"
+                        searchable={true}
+                        textColor={primary.contrast}
+                        value={category}
+                      />
+                    </div>
+                    {/* <div className="column-segment select">
+                      <SuperSelect
+                        name="sub-category"
+                        loader={this.getSubCategories}
+                        action={this.setSubCategory}
+                        reloadOn={[activity, warehouse, inventoryType, category]}
+                        placeholder="Select a Sub-Category"
+                        searchable={true}
+                        textColor={primary.contrast}
+                        value={subCategory}
+                      />
+                    </div> */}
                   </div>
                 </div>
   
               catalogColumn =
                 <div className="column center" style={{ color: background.contrast, borderColor: background.contrast }}>
-                  <div className="column-header param set">
+                  <div className="column-header column-segment">
                     <h1><i>menu_book</i>{activity.label.toUpperCase()} CATALOG</h1>
                   </div>
                   <Catalog
@@ -620,10 +729,12 @@ class App extends React.Component {
                     warehouse={warehouse}
                     inventoryType={inventoryType}
                     category={category}
+                    subCategory={subCategory}
                     startDate={startDate}
                     endDate={endDate}
                     addItemToCart={this.addItemToCart}
                     cart={cartList}
+                    picPreview={this.picPreview}
                   />
                 </div>
   
@@ -638,6 +749,7 @@ class App extends React.Component {
                     clearCart={this.clearCart}
                     submitQuote={this.submitModal}
                     toggleCart={this.toggleCart}
+                    addNote={this.displayNote}
                   />
                 </div>
               
@@ -677,7 +789,7 @@ class App extends React.Component {
 
             </div>
             <div className="main-nav">
-              <ul style={{color: primary.contrast}}>
+              <ul>
                 <li onClick={() => this.changeRoute('catalog')}>Get a Quote</li>
                 <li>Call an Agent</li>
                 <li onClick={this.showColorsModal}>Our Website</li>

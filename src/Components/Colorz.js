@@ -90,7 +90,7 @@ const HexToHSL = (H) => {
     }
   
     return hsl;
-  }
+}
 
 const Colorz = ({colors, setColors}) => {
     const changeHandler = (e, colorSet) => {
@@ -100,23 +100,38 @@ const Colorz = ({colors, setColors}) => {
         console.log("changing colors:", newColors);
         setColors(newColors);
     }
-    console.log("rendering with", colors);
+
+    const drag = (e) => {
+        console.log(e.cursor);
+    }
+    
+    const startDrag = (e) => {
+        console.log("start!", e);
+
+    }
+
+    const stopDrag = (e) => {
+        console.log("stop!", e);
+    }
+
     return (
-        <div className="modal draggable">
-            <div className="modal-container">
-                <div className="modal-header barlow">Colorize</div>
-                <div className="modal-body">
-                    <div className="color-node">
-                        <input type="color" id="primary" onChange={(e) => changeHandler(e, "primary")} value={HSLToHex(colors.primary.hue, colors.primary.sat, colors.primary.lum)}/>
-                        <label htmlFor="primary">Primary Color</label>
-                    </div>
-                    <div className="color-node">
-                        <input type="color" id="secondary" onChange={(e) => changeHandler(e, "secondary")} value={HSLToHex(colors.secondary.hue, colors.secondary.sat, colors.secondary.lum)}/>
-                        <label htmlFor="secondary">Secondary Color</label>
-                    </div>
-                    <div className="color-node">
-                        <input type="color" id="background" onChange={(e) => changeHandler(e, "background")} value={HSLToHex(colors.background.hue, colors.background.sat, colors.background.lum)}/>
-                        <label htmlFor="background">Background Color</label>
+        <div className="modal-anchor">
+            <div className="modal-content">
+                <div className="modal-container">
+                    <div className="modal-header barlow" onClick={startDrag} onMouseUp={stopDrag} onMouseMove={drag}>Colorize</div>
+                    <div className="modal-body">
+                        <div className="color-node">
+                            <input type="color" id="primary" onChange={(e) => changeHandler(e, "primary")} value={HSLToHex(colors.primary.hue, colors.primary.sat, colors.primary.lum)}/>
+                            <label htmlFor="primary">Primary Color</label>
+                        </div>
+                        <div className="color-node">
+                            <input type="color" id="secondary" onChange={(e) => changeHandler(e, "secondary")} value={HSLToHex(colors.secondary.hue, colors.secondary.sat, colors.secondary.lum)}/>
+                            <label htmlFor="secondary">Secondary Color</label>
+                        </div>
+                        <div className="color-node">
+                            <input type="color" id="background" onChange={(e) => changeHandler(e, "background")} value={HSLToHex(colors.background.hue, colors.background.sat, colors.background.lum)}/>
+                            <label htmlFor="background">Background Color</label>
+                        </div>
                     </div>
                 </div>
             </div>

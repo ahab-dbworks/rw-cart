@@ -24,7 +24,7 @@ class Catalog extends React.Component {
         super(props);
         this.state = {
             displayMode: DISPLAYMODEOPTIONS[1],
-            content: undefined,
+            catalogInventory: undefined,
             searchField: ""
         }
         this.mode = "waiting";
@@ -32,11 +32,11 @@ class Catalog extends React.Component {
 
     loadInventory = async () => {
         this.mode = "loading";
-        const content = await this.props.loader();
-        // console.log("loaded:", content);
-        if (content) {
+        const catalogInventory = await this.props.loader();
+        // console.log("loaded:", catalogInventory);
+        if (catalogInventory) {
             this.mode = "display"
-            this.setState({ content: content });
+            this.setState({ catalogInventory: catalogInventory });
         }
     }
 
@@ -64,10 +64,9 @@ class Catalog extends React.Component {
     }
 
     render() {
-        const { displayMode, content, searchField } = this.state;
-        const { cart, getAccessories, addItemToCart, activity, warehouse, inventoryType, category } = this.props;
-        let searchBar = undefined;
-        let catalogDisplay = undefined;
+        const { displayMode, catalogInventory, searchField } = this.state;
+        const { cart, getAccessories, addItemToCart, activity, warehouse, inventoryType, category, subCategory, picPreview } = this.props;
+        let searchBar, catalogDisplay, catalogContent = undefined;
 
         let address = undefined;
         if (category === null || inventoryType === null || warehouse === null || activity === null) {
@@ -76,21 +75,21 @@ class Catalog extends React.Component {
         
         switch (this.mode) {
             case "waiting":
-                catalogDisplay = <div className="modal abs barlow">AWAITING PARAMETERS</div>
+                catalogDisplay = <div className="modal-anchor"><div className="modal-content barlow">AWAITING PARAMETERS</div></div>
                 break;
             case "loading":
-                catalogDisplay = <div className="modal abs"><Loader/></div>
+                catalogDisplay = <div className="modal-anchor"><div className="modal-content barlow"><Loader/></div></div>
                 break;
             case "display":
-                address = `${activity.name}~${warehouse.name}~${inventoryType.name}~${category.name}`;
-                const filteredContent = content.Rows.filter(row => {
-                    return row[7].toLowerCase().includes(searchField.toLowerCase())
+                address = `${activity.name}~${warehouse.name}~${inventoryType.name}~${category.name}` + (subCategory ? `~${subCategory.name}` : "");
+                const filteredInventory = catalogInventory.filter(item => {
+                    return item.description.toLowerCase().includes(searchField.toLowerCase())
                 })
                 let loadMessage = "";
-                if (filteredContent.length > 0) {
+                if (filteredInventory.length > 0) {
                     loadMessage = null;
                 } else {
-                    loadMessage = <div className="modal abs">No inventory items match this criteria</div>
+                    loadMessage = <div className="modal-anchor"><div className="modal-content barlow">No inventory items match this criteria</div></div>
                 }
                 searchBar =
                 <div className="search-field">
@@ -102,6 +101,21 @@ class Catalog extends React.Component {
                         action={this.setDisplayMode}
                     />
                 </div>
+                catalogContent = filteredInventory.map((item, i) => {
+                    return (
+                        <div key={i} className={`catalog-item-container ${item.type}`}>
+                            <CatalogItem
+                                item={item}
+                                cart={cart}
+                                loader={getAccessories}
+                                addItemToCart={addItemToCart}
+                                rootParent={true}
+                                picPreview={picPreview}
+                                displayMode={displayMode.name}
+                            />
+                        </div>
+                    )
+                })
                 switch (displayMode.name) {
                     case "table":
                         catalogDisplay = 
@@ -117,22 +131,7 @@ class Catalog extends React.Component {
                                 </ul>
                             </div>
                             <div className="dbw-tbody">
-                                {
-                                    filteredContent.map((item, i) => {
-                                        return (
-                                            <div key={i} className={`catalog-item-container ${item[19]}`}>
-                                                <CatalogItem
-                                                    address={address}
-                                                    rowContent={item}
-                                                    cart={cart}
-                                                    loader={getAccessories}
-                                                    addItemToCart={addItemToCart}
-                                                    rootParent={true}
-                                                />
-                                            </div>
-                                        )
-                                    })
-                                }
+                                {catalogContent}
                                 {loadMessage}
                             </div>
                         </div>
@@ -140,22 +139,7 @@ class Catalog extends React.Component {
                     case "grid":
                         catalogDisplay =
                             <div className="dbw-grid">
-                                {
-                                    filteredContent.map((item, i) => {
-                                        return (
-                                            <div key={i} className={`catalog-item-container ${item[19]}`}>
-                                                <CatalogItem
-                                                    address={address}
-                                                    rowContent={item}
-                                                    cart={cart}
-                                                    loader={getAccessories}
-                                                    addItemToCart={addItemToCart}
-                                                    rootParent={true}
-                                                />
-                                            </div>
-                                        )
-                                    })
-                                }
+                                {catalogContent}
                                 {loadMessage}
                             </div>
                         break;

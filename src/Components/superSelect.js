@@ -14,6 +14,7 @@ class SuperSelect extends Select {
     getOptions = async () => {
         this.setState({ mode: "loading" });
         const options = await this.props.loader(this.props.filter);
+        console.log(this.props.name, "options", options)
         if (options) {
             switch (Object.values(options).length) {
                 case 0:
@@ -24,6 +25,8 @@ class SuperSelect extends Select {
                 default:
                     this.setState({ mode: "display", options: options });
             }
+        } else {
+            this.setState({mode: "empty"})
         }
     }
 
@@ -44,7 +47,7 @@ class SuperSelect extends Select {
     }
 
     render() {
-        const { mode, options, resetValues } = this.state;
+        const { mode, options } = this.state;
         const { name, action, searchable, placeholder, value, textColor } = this.props;
         const customStyles = {
             option: (provided, state) => ({
@@ -54,6 +57,7 @@ class SuperSelect extends Select {
             control: () => ({
                 backgroundColor: 'transparent',
                 display: 'flex',
+                padding: '25px'
             }),
             placeholder: () => ({
                 color: textColor,
@@ -113,7 +117,7 @@ class SuperSelect extends Select {
                 break;
         }
         return (
-            <div className="selector-set">
+            <div className={`selector-set ${mode}`}>
                 <div className="super-label">{labelName}</div>
                 <Select
                     styles={customStyles}

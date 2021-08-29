@@ -24,7 +24,7 @@ class CartContainer extends React.Component {
 
     render() {
         const { collapsedBody } = this.state;
-        const { isOnlyChild, branchTier, label, parentItemHeader, items } = this.props;
+        const { isOnlyChild, branchTier, label, parentItem, items } = this.props;
         const collapseBtn = collapsedBody ? "drag_handle" : "view_day";
 
         let branchGroup = {}
@@ -47,22 +47,25 @@ class CartContainer extends React.Component {
                 </ul>
         } else {
             headerBarContent =
-                <ul className={`kit-complete-header ${parentItemHeader.parent ? "child" : "adult"}`}>
+                <ul className={`kit-complete-header ${parentItem.parent ? "child" : "adult"}`}>
                     <li className=""><i className="collapser-button" onClick={this.toggle}>{collapsedBody ? "expand_more" : "expand_less"}</i></li>
                     <li className="cart-col quantity numeric">
                         <div className="super-input-container">
                             <SuperInput
-                                value={parentItemHeader.quantity.actual}
-                                updateValue={(q) => this.props.updateCart(parentItemHeader.details, parentItemHeader.branchChain.join("~"), q)}
+                                value={parentItem.quantity.actual}
+                                updateValue={(q) => this.props.updateCart(parentItem, q)}
                             />
                         </div>
                     </li>
-                    <li className="cart-col name">{parentItemHeader.name}</li>
-                    <li className="cart-col rate numeric">{parentItemHeader.rate.toFixed(2)}</li>
+                    <li className="cart-col name">
+                        {parentItem.description}
+                        {(parentItem.note ? <i>sticky_note_2</i> : "")}
+                    </li>
+                    <li className="cart-col rate numeric">{parentItem.rate.toFixed(2)}</li>
                 </ul>
         }
         return (
-            <div key={label} className={`collapser-container${(parentItemHeader ? " kit-complete" : "")}${(branchTier < 5 ? " branch-container" : "")}${isOnlyChild ? " hidden" : " show"}`}>
+            <div key={label} className={`collapser-container${(parentItem ? " kit-complete" : "")}${(branchTier < 5 ? " branch-container" : "")}${isOnlyChild ? " hidden" : " show"}`}>
                 <div className={`collapser-header`}>
                     {headerBarContent}
                 </div>
@@ -76,6 +79,7 @@ class CartContainer extends React.Component {
                                     content={branchGroup[address]}
                                     isOnlyChild={Object.keys(branchGroup).length === 1 && branchTier < 4}
                                     updateCart={this.props.updateCart}
+                                    addNote={this.props.addNote}
                                 />
                             )
                         })

@@ -7,40 +7,48 @@ class CatalogContainer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            
         }
-        this.isExpanded = false
+        this.childItems = null;
+        this.contentIsLoaded = false;
         this.subRowCount = 1;
-        this.content = undefined;
+        this.isExpanded = false
         this.rowIndex = {};
     }
 
     loadAccessories = async () => {
-        this.content = await this.props.loader(this.props.rowContent[2]);
-        this.subRowCount = this.content.Rows.length;
+        this.childItems = await this.props.loader(this.props.item);
+        this.contentIsLoaded = true;
+        this.subRowCount = this.childItems.length;
+        this.completeToggle();
     }
 
     toggleExpanded = async () => {
-        const { address, updateSubRows } = this.props;
         this.isExpanded = !this.isExpanded;
-        if (!this.content) {
-            await this.loadAccessories();
+        if (!this.contentIsLoaded) {
+            this.loadAccessories();
         }
+        this.completeToggle();
+    }
+    
+    completeToggle = () => {
+        const { item, updateSubRows } = this.props;
         if (this.props.rootParent) {
-            this.rowIndex[address] = this.subRowCount;
-            this.forceUpdate()
+            this.rowIndex[item.address] = this.subRowCount;
+            this.forceUpdate();
         } else {
-            updateSubRows(address, (this.isExpanded ? this.subRowCount : 0));
+            console.log("parent address:", item.parent.address, "isExpanded:", this.isExpanded, "subRowCount:", this.subRowCount);
+            updateSubRows(item.address, (this.isExpanded ? this.subRowCount : 0));
         }
-        
     }
 
-    updateSubRows = (subAddress, subRowCount) => {
-        this.rowIndex[subAddress] = subRowCount;
+    updateSubRows = (subAddress, childRowCount) => {
+        this.rowIndex[subAddress] = childRowCount;
         this.forceUpdate();
     }
 
     render() {
-        const { address, header, cart, loader, addItemToCart, backgroundContrast } = this.props;
+        const { item, header, cart, loader, addItemToCart, picPreview, displayMode } = this.props;
         let rowIndex, updateSubRows = undefined;
         if (this.props.rootParent) {
             updateSubRows = this.updateSubRows;
@@ -50,44 +58,45 @@ class CatalogContainer extends React.Component {
             rowIndex = this.props.rowIndex
         }
         //
-        const tabBtn = this.isExpanded ? "expand_less" : "expand_more";
-        const rowTab = <div className="row-expander btn" onClick={this.toggleExpanded}><i>{tabBtn}</i></div>
+        const rowTab = (displayMode === "table" ? <div className={`row-expander btn ${(this.isExpanded ? "expanded" : "collapsed")}`} onClick={this.toggleExpanded}><i>{(this.isExpanded ? "expand_less" : "expand_more")}</i></div> : <div className="row-expander"></div>)
         //
         let accessoryContent = undefined;
         let showRows = 1;
         if (this.isExpanded) {
             Object.keys(rowIndex).forEach(rowSet => {
-                if (rowSet.indexOf(address) === 0) {
+                if (rowSet.indexOf(item.address) === 0) {
                     showRows += rowIndex[rowSet];
                 }
             })
-            if (this.content) {
-                accessoryContent = this.content.Rows.map((item, i) => {
+            accessoryContent = <Loader />;
+            if (this.contentIsLoaded) {
+                accessoryContent = this.childItems.map((item, i) => {
                     return (
-                        <div key={i} className={`catalog-item-container ${item[19]}`}>
+                        <div key={i} className={`catalog-item-container ${item.type} ${(this.isExpanded ? "expanded" : "collapsed")}`}>
                             <CatalogItem
-                                address={address}
-                                rowContent={item}
+                                item={item}
                                 cart={cart}
                                 loader={loader}
                                 addItemToCart={addItemToCart}
                                 updateSubRows={updateSubRows}
                                 rootParent={false}
                                 rowIndex={rowIndex}
+                                picPreview={picPreview}
+                                displayMode={displayMode}
                             />
                         </div>
                     )
                 })
-            } else {
-                accessoryContent = <Loader/>
             }
         } else {
+            Object.keys(rowIndex).forEach(rowSet => {
+                if (rowSet.indexOf(item.address) === 0) {
+                    rowIndex[rowSet] = 0;
+                }
+            })
             showRows = 1;
         }
-
-        
-
-        //style={{ height: (subRowCount * 50) + "px" }} -- in parent div (below) for animated row expansion
+        //style={{ height: (this.subRowCount * 50) + "px" }} -- in parent div (below) for animated row expansion
         return (
             <div className="collapsible-container" style={{ height: ((showRows * 52) + (this.isExpanded ? showRows * 2 : 0)) + "px" }}>  
                 <div className="container-header">
