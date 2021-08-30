@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600&display=swap');
+@import './branding.css';
+
+.home-container {
+    height:100%;
+    display: flex;
+    justify-content: center;
+}
+
+.center-column {
+    width:100%;
+    height: 100%;
+    margin: 0 400px;
+    background-color: hsla(0,0%,0%,0.4);
+    overflow:scroll;
+}
+
+.screed {
+
+}
+
+.home-header {
+    text-align: center;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size:100px;
+    color: white;
+    font-weight:800;
+    padding: 200px;
+}
+.home-header > span {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 50px;
+    font-style: italic;
+}
+
+.highlights-container {
+    display: flex;
+    padding: 10px;
+}
+.highlights-container > * {
+    flex: 1;
+}
+
+.highlight-box {
+    height: 300px;
+    margin: 10px;
+    overflow: hidden;
+}
+
+.highlight-header {
+    color: black;
+    background-color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 5px 10px;
+}
+
+.highlight-content {
+    color: white;
+    padding: 10px;
+    border: 1px solid white;
+}
+.highlight-content .callout {
+    color:hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
+}
+.highlight-content p {
+    margin-top: 0;
+}
+img {
+    border: 1px solid hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
+}

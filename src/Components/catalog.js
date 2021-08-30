@@ -108,7 +108,6 @@ class Catalog extends React.Component {
                                 item={item}
                                 cart={cart}
                                 loader={getAccessories}
-                                addItemToCart={addItemToCart}
                                 rootParent={true}
                                 picPreview={picPreview}
                                 displayMode={displayMode.name}

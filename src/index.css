@@ -50,6 +50,7 @@ i {
   font-style: normal;
   font-weight: normal;
   font-size: 1em;
+  user-select: none;
 }
 
 i ~ span, i ~ div, i ~ ul {
@@ -70,7 +71,7 @@ i ~ span, i ~ div, i ~ ul {
 
 .btn {
   cursor: pointer;
-  user-select: none;
+  
 }
 
 .btn.inactive {

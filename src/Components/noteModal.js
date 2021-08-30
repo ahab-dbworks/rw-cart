@@ -24,7 +24,7 @@ class NoteModal extends React.Component {
                 <div className="modal">
                     <div id="submitQuote" className="modal-container" style={{width: "500px"}}>
                         <div className="modal-header barlow">
-                            Note for {item.name}
+                            Note for {item.description}
                         </div>
                         <div className="modal-body">
                             <div className={`input-set`}>

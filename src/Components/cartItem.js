@@ -23,8 +23,6 @@ const CartItem = (props) => {
                     parentItem={parentItem}
                     items={group}
                     isOnlyChild={isOnlyChild}
-                    updateCart={props.updateCart}
-                    addNote={props.addNote}
                 />
             </div>
         )
@@ -34,7 +32,7 @@ const CartItem = (props) => {
             itemQuantity =
                 <SuperInput
                     value={content[0].quantity.actual}
-                    updateValue={(q) => props.updateCart(content[0], q)}
+                    updateValue={(q) => content[0].updateCartQuantity(q)}
                 />
         }
         return (
@@ -46,7 +44,7 @@ const CartItem = (props) => {
                             {itemQuantity}
                         </div>
                     </li>
-                    <li className="cart-col name" onClick={() => props.addNote(content[0])}>
+                    <li className="cart-col name" onClick={() => content[0].displayNote()}>
                         {(content[0].note != "" ? <i>sticky_note_2</i> : "")}
                         <div>{content[0].description}</div>
                     </li>

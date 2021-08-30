@@ -53,13 +53,13 @@ class CartContainer extends React.Component {
                         <div className="super-input-container">
                             <SuperInput
                                 value={parentItem.quantity.actual}
-                                updateValue={(q) => this.props.updateCart(parentItem, q)}
+                                updateValue={(q) => parentItem.updateCartQuantity(q)}
                             />
                         </div>
                     </li>
-                    <li className="cart-col name">
-                        {parentItem.description}
+                    <li className="cart-col name" onClick={parentItem.displayNote}>
                         {(parentItem.note ? <i>sticky_note_2</i> : "")}
+                        {parentItem.description}
                     </li>
                     <li className="cart-col rate numeric">{parentItem.rate.toFixed(2)}</li>
                 </ul>
@@ -78,8 +78,6 @@ class CartContainer extends React.Component {
                                     label={address}
                                     content={branchGroup[address]}
                                     isOnlyChild={Object.keys(branchGroup).length === 1 && branchTier < 4}
-                                    updateCart={this.props.updateCart}
-                                    addNote={this.props.addNote}
                                 />
                             )
                         })

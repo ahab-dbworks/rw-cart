@@ -92,8 +92,16 @@ const HexToHSL = (H) => {
     return hsl;
 }
 
-const Colorz = ({colors, setColors}) => {
-    const changeHandler = (e, colorSet) => {
+class Colorz extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            show: false
+        }
+
+    }
+    changeHandler = (e, colorSet) => {
+        const { colors, setColors } = this.props;
         const pickedColor = HexToHSL(e.target.value);
         const newColors = _.clone(colors);
         newColors[colorSet] = pickedColor
@@ -101,42 +109,42 @@ const Colorz = ({colors, setColors}) => {
         setColors(newColors);
     }
 
-    const drag = (e) => {
-        console.log(e.cursor);
-    }
-    
-    const startDrag = (e) => {
-        console.log("start!", e);
-
+    toggleColorControls = () => {
+        const { show } = this.state;
+        this.setState({ show: !show });
     }
 
-    const stopDrag = (e) => {
-        console.log("stop!", e);
-    }
-
-    return (
-        <div className="modal-anchor">
-            <div className="modal-content">
-                <div className="modal-container">
-                    <div className="modal-header barlow" onClick={startDrag} onMouseUp={stopDrag} onMouseMove={drag}>Colorize</div>
-                    <div className="modal-body">
-                        <div className="color-node">
-                            <input type="color" id="primary" onChange={(e) => changeHandler(e, "primary")} value={HSLToHex(colors.primary.hue, colors.primary.sat, colors.primary.lum)}/>
-                            <label htmlFor="primary">Primary Color</label>
-                        </div>
-                        <div className="color-node">
-                            <input type="color" id="secondary" onChange={(e) => changeHandler(e, "secondary")} value={HSLToHex(colors.secondary.hue, colors.secondary.sat, colors.secondary.lum)}/>
-                            <label htmlFor="secondary">Secondary Color</label>
-                        </div>
-                        <div className="color-node">
-                            <input type="color" id="background" onChange={(e) => changeHandler(e, "background")} value={HSLToHex(colors.background.hue, colors.background.sat, colors.background.lum)}/>
-                            <label htmlFor="background">Background Color</label>
-                        </div>
+    render() {
+        const { colors } = this.props;
+        let colorModal = null;
+        if (this.state.show) {
+            colorModal =
+            <div className="modal-container">
+                <div className="modal-header barlow">Colorize</div>
+                <div className="modal-body">
+                    <div className="color-node">
+                        <input type="color" id="primary" onChange={(e) => this.changeHandler(e, "primary")} value={HSLToHex(colors.primary.hue, colors.primary.sat, colors.primary.lum)}/>
+                        <label htmlFor="primary">Primary Color</label>
+                    </div>
+                    <div className="color-node">
+                        <input type="color" id="secondary" onChange={(e) => this.changeHandler(e, "secondary")} value={HSLToHex(colors.secondary.hue, colors.secondary.sat, colors.secondary.lum)}/>
+                        <label htmlFor="secondary">Secondary Color</label>
+                    </div>
+                    <div className="color-node">
+                        <input type="color" id="background" onChange={(e) => this.changeHandler(e, "background")} value={HSLToHex(colors.background.hue, colors.background.sat, colors.background.lum)}/>
+                        <label htmlFor="background">Background Color</label>
                     </div>
                 </div>
             </div>
-        </div>
-    )
+        }
+        
+        return (
+            <div className="colorz-anchor">
+                <div className="colorz-icon" onClick={this.toggleColorControls}><i>palette</i></div>
+                {colorModal}
+            </div>
+        )
+    }
 
 }
 

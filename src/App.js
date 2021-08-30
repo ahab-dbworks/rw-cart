@@ -10,6 +10,7 @@ import SubmitForm from './Components/submitForm';
 import PictureModal from './Components/PictureModal';
 import Colorz from './Components/Colorz';
 import NoteModal from './Components/noteModal';
+import HomePage from './HomePage';
 import _ from 'lodash';
 
 
@@ -97,14 +98,16 @@ class App extends React.Component {
       if (item.type != "ITEM" && item.type != "ACCESSORY") {
         await loadAccessories(item);
       }
-      item.quantity.fraction = item.quantity.default * q;
+      // correct q if greater than supply
+      console.log("q for", item.description, "is", q, "and availability is", item.available);
+      const adjustedQ = Math.max(Math.min(q, item.available), 0);
+      console.log("so q is now", adjustedQ);
+      
+      item.quantity.fraction = item.quantity.default * adjustedQ;
       item.quantity.actual = Math.ceil(item.quantity.fraction);
       cartList[item.address] = item;
     }
 
-    // correct q if greater than supply
-    console.log("q is", q, "and availability is", item.available);
-    q = Math.min(q, item.available);
     
     //add item or update quantity?
     if (cartList[item.address]) {
@@ -113,11 +116,14 @@ class App extends React.Component {
           if (q <= 0 && !cartList[item.address].isOption) {
             delete cartList[key];
           } else {
+            console.log("q for", item.description, "is", q, "and availability is", item.available);
+            const adjustedQ = Math.max(Math.min(q, item.available), 0);
+            console.log("so q is now", adjustedQ);
             // updating fraction value
             if (!cartList[key].isOption) {
-              cartList[key].quantity.fraction = (cartList[key].quantity.default * q);
+              cartList[key].quantity.fraction = (cartList[key].quantity.default * adjustedQ);
             } else if (cartList[key].isOption && key === item.address) {
-              cartList[key].quantity.fraction = q;
+              cartList[key].quantity.fraction = adjustedQ;
             }
             // correcting negative fraction values
             if (cartList[key].quantity.fraction < 0) {
@@ -361,6 +367,9 @@ class App extends React.Component {
       rate: item[35],
       type: item[19]
     }
+    itemObject.updateCartQuantity = (q) => this.addItemToCart(itemObject, q);
+    itemObject.loadAccessories = () => this.getAccessories(itemObject);
+    itemObject.displayNote = () => this.displayNote(itemObject);
     itemObject.address = itemObject.branchChain.join("~");
     return itemObject;
   }
@@ -540,10 +549,6 @@ class App extends React.Component {
   //   })
   // }
 
-  showColorsModal = () => {
-    this.setState({ showColorsModal: !this.state.showColorsModal });
-  }
-
   setColors = (colors) => {
     Object.keys(colors).forEach(color => {
       colors[color].contrast = "black";
@@ -606,7 +611,7 @@ class App extends React.Component {
     const { route, mainModal, warehouse, activity, inventoryType, category, subCategory, startDate, endDate, quotePeriod, cartList, cartMode, showColorsModal, colors } = this.state;
     //console.log("App render with state:", this.state);
     //
-    let headerSection, colorsModal, paramColumn, catalogColumn, cartColumn, mainApp = undefined;
+    let colorzModal, paramColumn, catalogColumn, cartColumn, mainApp = undefined;
     //
 
     this.renderColors();
@@ -614,26 +619,13 @@ class App extends React.Component {
     //
     switch (route) {
       case 'home':
-        headerSection = 
-        <div className="header-banner">
-          <div className="banner-content">
-            <h1>Welcome!</h1>
-          </div>
-          <div className="banner-background">
-            <img src="https://h7f7z2r7.stackpathcdn.com/sites/default/files/images/articles/blakcstonemain.jpg"/>
-          </div>
-        </div>
-
-        catalogColumn =
-        <div>
-          
-        </div>
+        mainApp = <HomePage/>
         break;
-      case 'catalog':
-        if (this.state.credentials) {
-          switch (this.state.credentials.statuscode) {
-            case 0:
-              colorsModal = showColorsModal ? <Colorz colors={colors} setColors={this.setColors} /> : "";
+        case 'catalog':
+          if (this.state.credentials) {
+            switch (this.state.credentials.statuscode) {
+              case 0:
+              colorzModal = <Colorz colors={colors} setColors={this.setColors} />;
               paramColumn =
                 <div className="column">
                 
@@ -724,7 +716,6 @@ class App extends React.Component {
                   </div>
                   <Catalog
                     loader={this.getInventory}
-                    getAccessories={this.getAccessories}
                     activity={activity}
                     warehouse={warehouse}
                     inventoryType={inventoryType}
@@ -732,7 +723,6 @@ class App extends React.Component {
                     subCategory={subCategory}
                     startDate={startDate}
                     endDate={endDate}
-                    addItemToCart={this.addItemToCart}
                     cart={cartList}
                     picPreview={this.picPreview}
                   />
@@ -745,17 +735,15 @@ class App extends React.Component {
                     cartList={cartList}
                     activityList={ACTIVITYLIST}
                     quotePeriod={quotePeriod}
-                    updateCart={this.addItemToCart}
                     clearCart={this.clearCart}
                     submitQuote={this.submitModal}
                     toggleCart={this.toggleCart}
-                    addNote={this.displayNote}
                   />
                 </div>
               
               mainApp =
                 <article>
-                  {colorsModal}
+                  {colorzModal}
                   {mainModal}
                   <div className="body-margin"></div>
                   <div className="body-main">
@@ -785,21 +773,22 @@ class App extends React.Component {
       <div className="App">
         <header>
           <nav>
-            <div className="margin-left">
+            <div className="body-margin">
 
             </div>
             <div className="main-nav">
               <ul>
-                <li onClick={() => this.changeRoute('catalog')}>Get a Quote</li>
-                <li>Call an Agent</li>
-                <li onClick={this.showColorsModal}>Our Website</li>
+                <li onClick={() => this.changeRoute('home')}>Home</li>
+                <li>About Us</li>
                 <li>News</li>
+                <li>Services</li>
+                <li>Call an Agent</li>
+                <li onClick={() => this.changeRoute('catalog')}>Get a Quote</li>
               </ul>
             </div>
-            <div className="margin-right">
+            <div className="body-margin">
             </div>
           </nav>
-          {headerSection}
         </header>
         {mainApp}
       </div>

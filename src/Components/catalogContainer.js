@@ -17,7 +17,7 @@ class CatalogContainer extends React.Component {
     }
 
     loadAccessories = async () => {
-        this.childItems = await this.props.loader(this.props.item);
+        this.childItems = await this.props.item.loadAccessories();
         this.contentIsLoaded = true;
         this.subRowCount = this.childItems.length;
         this.completeToggle();
@@ -48,7 +48,7 @@ class CatalogContainer extends React.Component {
     }
 
     render() {
-        const { item, header, cart, loader, addItemToCart, picPreview, displayMode } = this.props;
+        const { item, header, cart, loader, picPreview, displayMode } = this.props;
         let rowIndex, updateSubRows = undefined;
         if (this.props.rootParent) {
             updateSubRows = this.updateSubRows;
@@ -76,8 +76,6 @@ class CatalogContainer extends React.Component {
                             <CatalogItem
                                 item={item}
                                 cart={cart}
-                                loader={loader}
-                                addItemToCart={addItemToCart}
                                 updateSubRows={updateSubRows}
                                 rootParent={false}
                                 rowIndex={rowIndex}

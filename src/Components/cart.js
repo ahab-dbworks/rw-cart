@@ -39,7 +39,6 @@ const Cart = (props) => {
                                 label={key}
                                 content={topTier[key]}
                                 isOnlyChild={Object.keys(topTier).length === 1}
-                                updateCart={props.updateCart}
                                 addNote={props.addNote}
                             />
                         )

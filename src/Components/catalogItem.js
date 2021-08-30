@@ -2,7 +2,7 @@ import React from 'react';
 import CatalogContainer from './catalogContainer';
 import SuperInput from './superInput';
 
-const CatalogItem = ({ item, cart, loader, addItemToCart, updateSubRows, rowIndex, rootParent, picPreview, displayMode }) => {
+const CatalogItem = ({ item, cart, loader, updateSubRows, rowIndex, rootParent, picPreview, displayMode }) => {
 
     const generateDisplayContent = () => {
         //enable/disable PLUS and MINUS buttons
@@ -37,16 +37,16 @@ const CatalogItem = ({ item, cart, loader, addItemToCart, updateSubRows, rowInde
             <ul className="catalog-item-elements">
                 <li className={`item-segment item-quantity ${optional}`}>
                     <div className="quantity-control">
-                        <div className={`btn${qMinus ? "" : " inactive"}`} onClick={(qMinus ? () => addItemToCart(item, cartQ - 1) : null)}>
+                        <div className={`btn${qMinus ? "" : " inactive"}`} onClick={(qMinus ? () => item.updateCartQuantity(cartQ - 1) : null)}>
                             <i>remove</i>
                         </div>
                         <div className="quantity-count">
                             <SuperInput
                                 value={cartQ}
-                                updateValue={(q) => addItemToCart(item, q)}
+                                updateValue={(q) => item.updateCartQuantity(q)}
                             />
                         </div>
-                        <div className={`btn${qPlus ? "" : " inactive"}`} onClick={(qPlus ? () => addItemToCart(item, cartQ + 1) : null)}>
+                        <div className={`btn${qPlus ? "" : " inactive"}`} onClick={(qPlus ? () => item.updateCartQuantity(cartQ + 1) : null)}>
                             <i>add</i>
                         </div>
                     </div>
@@ -74,8 +74,6 @@ const CatalogItem = ({ item, cart, loader, addItemToCart, updateSubRows, rowInde
                 header={itemContentForDisplay}
                 item={item}
                 cart={cart}
-                loader={loader}
-                addItemToCart={addItemToCart}
                 updateSubRows={updateSubRows}
                 rowIndex={rowIndex}
                 rootParent={rootParent}
