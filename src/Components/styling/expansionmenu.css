@@ -1,0 +1,33 @@
+.menu-options-list{
+    width:100%;
+}
+
+.menu-option {
+    display: flex;
+    flex-flow: column;
+    width: auto;
+    border-bottom: 1px solid hsla(var(--primary-hue), var(--primary-max), var(--primary-max), 0.25);
+}
+.menu-option:hover {
+    cursor: pointer;
+    background-color: hsla(var(--primary-hue), var(--primary-max), var(--primary-max), 0.1);
+}
+.menu-option:last-child {
+    border: none;
+}
+
+.option-label {
+    display: flex;
+    justify-content: space-between;
+    width: auto;
+    padding: 10px 10px;
+}
+
+.sub-options {
+    display:flex;
+    justify-content:center;
+    width: auto;
+    overflow: hidden;
+    margin-left: 5px;
+    transition: height 0.1s ease-out;
+}

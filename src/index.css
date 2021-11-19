@@ -14,22 +14,16 @@ body {
     sans-serif, -apple-system, BlinkMacSystemFont;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* --brand-hue: 192;
-  --brand-sat: 100%;
-  --brand-lum: 50%;
-  --brand-color:hsl(var(--brand-hue), var(--brand-sat), var(--brand-lum));
-  --brand-dark: hsl(204, var(--brand-sat), var(--brand-lum)); */
-  /* --brand-fade: linear-gradient(to right, var(--brand-color), var(--brand-dark)); */
+}
+
+body::-webkit-scrollbar {
+  display:none;
 }
 
 .barlow {
   font-family: 'Barlow Condensed', sans-serif;
+  user-select: none;
 }
-
-/* code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-} */
 
 .App {
   display: flex;
@@ -92,4 +86,8 @@ ul {
 
 input:focus, textarea:focus {
   outline: none;
+}
+
+.numeric {
+  text-align: right;
 }

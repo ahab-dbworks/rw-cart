@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
+import './styling/superinput.css';
 
 class SuperInput extends React.Component {
     constructor(props) {

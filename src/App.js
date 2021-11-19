@@ -1,5 +1,6 @@
 import './App.css';
 import React from 'react';
+import Parameters from './Components/parameters';
 import Catalog from './Components/catalog';
 import Cart from './Components/cart';
 import SuperSelect from './Components/superSelect';
@@ -11,58 +12,23 @@ import PictureModal from './Components/PictureModal';
 import Colorz from './Components/Colorz';
 import NoteModal from './Components/noteModal';
 import HomePage from './HomePage';
+import config from './config.json';
 import _ from 'lodash';
 
-
-const APIURL = 'https://demo.rentalworksweb.com/api/v1';
-const ACTIVITYLIST = [
-  {
-    name: "RENTAL",
-    code: "R",
-    label: "Rental"
-  },
-  {
-    name: "SALES",
-    code: "S",
-    label: "Sales"
-  },
-  {
-    name: "PARTS",
-    code: "P",
-    label: "Parts"
-  }
-  // {
-  //   name: "labor",
-  //   code: "L",
-  //   label: "Labor"
-  // },
-  // {
-  //   name: "misc",
-  //   code: "M",
-  //   label: "Misc"
-  // }
-]
+const APIURL = config.url;
+const DEFAULTLOGIN = config.defaultLogin;
+const ACTIVITYLIST = config.activityList;
+const FETCHINVENTORYMETHOD = config.fetchInventoryMethod;
 
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      route: "home",
-      mainModal: null,
       credentials: null,
-      activity: ACTIVITYLIST[0],
-      inventoryType: null,
-      category: null,
-      subCategory: null,
-      warehouse: null,
-      customer: "",
-      email: "",
+      session: null,
+      //
       cartList: {},
-      startDate: new Date(),
-      endDate: new Date(),
-      quotePeriod: 1,
       cartMode: "out",
-      showColorModal: false,
       colors: {
         primary: {
           hue: parseInt(getComputedStyle(document.body).getPropertyValue('--primary-hue')),
@@ -79,13 +45,32 @@ class App extends React.Component {
           sat: parseInt(getComputedStyle(document.body).getPropertyValue('--background-sat').slice(0,-1)),
           lum: parseInt(getComputedStyle(document.body).getPropertyValue('--background-lum').slice(0,-1))
         }
-      }
-    };
+      },
+      route: "catalog",
+      mainModal: null,
+      //
+      activity: ACTIVITYLIST[0],
+      inventoryType: null,
+      category: null,
+      subCategory: null,
+      //
+      customer: "",
+      email: "",
+      startDate: new Date(),
+      endDate: new Date(),
+      quotePeriod: 1,
+      showColorModal: false,
+      warehouse: {
+        loaded: false
+      },
+      FETCHINVENTORYMETHOD: "browse"
+    }
   }
 
   addItemToCart = async(item, q) => {
-    const { cartList, activity, warehouse, inventoryType, category } = this.state;
+    const { cartList } = this.state;
     const popCart = _.isEmpty(cartList)
+    const tierLevels = 3;
 
     const loadAccessories = async (parent) => {
       const accessories = await this.getAccessories(parent);
@@ -99,9 +84,7 @@ class App extends React.Component {
         await loadAccessories(item);
       }
       // correct q if greater than supply
-      console.log("q for", item.description, "is", q, "and availability is", item.available);
       const adjustedQ = Math.max(Math.min(q, item.available), 0);
-      console.log("so q is now", adjustedQ);
       
       item.quantity.fraction = item.quantity.default * adjustedQ;
       item.quantity.actual = Math.ceil(item.quantity.fraction);
@@ -116,9 +99,7 @@ class App extends React.Component {
           if (q <= 0 && !cartList[item.address].isOption) {
             delete cartList[key];
           } else {
-            console.log("q for", item.description, "is", q, "and availability is", item.available);
             const adjustedQ = Math.max(Math.min(q, item.available), 0);
-            console.log("so q is now", adjustedQ);
             // updating fraction value
             if (!cartList[key].isOption) {
               cartList[key].quantity.fraction = (cartList[key].quantity.default * adjustedQ);
@@ -137,7 +118,7 @@ class App extends React.Component {
     } else {
       if (!item.isOption && q != 0) await quantizeCartItem(item);
     }
-
+    
     //
     if (popCart) {
       this.toggleCart("in");
@@ -167,215 +148,8 @@ class App extends React.Component {
     this.setState({ route: route });
   }
 
-  getCategories = async () => {
-    const { credentials, activity, inventoryType } = this.state;
-    if (this.state.inventoryType) {
-      
-      const resp = await fetch(`${APIURL}/${activity.name}category/browse`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${credentials.access_token}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          'orderby': 'Category',
-          'searchfieldoperators': ['<>', '='],
-          'searchfields': ['Inactive', 'InventoryTypeId'],
-          'searchfieldtypes': ['Text', 'Text'],
-          'searchfieldvalues': ['T', `${inventoryType.id}`],
-          'searchseparators': [',']
-        })
-      })
-        .catch(err => console.log(err));
-      //
-      const categories = await resp.json();
-      let categoryList = {};
-      categories.Rows.forEach((category, i) => {
-        categoryList[category[2]] = {
-          id: category[2],
-          value: category[2],
-          name: category[3],
-          label: category[3],
-          index: i
-        }
-      });
-      return categoryList;
-    } else {
-      return undefined;
-    }
-  }
-  
-  getSubCategories = async () => {
-    const { credentials, activity, inventoryType, category } = this.state;
-    if (this.state.inventoryType) {
-      
-      const resp = await fetch(`${APIURL}/subcategory/browse`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${credentials.access_token}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          'orderby': 'OrderBy',
-          // 'uniqueids': {'CategoryId':category.id, 'TypeId':inventoryType.id, 'RecType': activity.code}
-          'searchfieldoperators': ['<>', '=', '=', '='],
-          'searchfields': ['Inactive', 'TypeId', 'CategoryId', 'RecType'],
-          'searchfieldtypes': ['Text', 'Text', 'Text', 'Text'],
-          'searchfieldvalues': ['T', `${inventoryType.id}`, `${category.id}`, `${activity.code}`],
-          'searchseparators': [',',',',',',',']
-        })
-      })
-        .catch(err => console.log(err));
-      //
-      const subcategories = await resp.json();
-      console.log("fetched sub-categories:", subcategories);
-      let subcategoryList = {};
-      subcategories.Rows.forEach((subcategory, i) => {
-        subcategoryList[subcategory[0]] = {
-          id: subcategory[0],
-          value: subcategory[0],
-          name: subcategory[1],
-          label: subcategory[1],
-          index: i
-        }
-      });
-      console.log(subcategoryList);
-      return subcategoryList;
-    } else {
-      return undefined;
-    }
-  }
-
-  getCredentials = () => {
-    fetch(`${APIURL}/jwt`, {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        UserName: 'joshua',
-        Password: 'icardius'
-      })
-    })
-      .then(response => response.json())
-      .then(res => {
-        console.log("api credentials:",res);
-        this.setState({ credentials: res });
-      })
-      .catch((err, res) => { console.log(err, "response:", res) });
-  }
-
-  getInventory = async () => {
-    const { warehouse, activity, inventoryType, category, subCategory, startDate, endDate } = this.state;
-    if (warehouse && inventoryType && category) {
-      const resp = await fetch(`${APIURL}/inventorysearch/search`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.state.credentials.access_token}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          'OrderId': '0000KG53',
-          'SessionId': '0000KG53',
-          'CurrencyId': '0000000E',
-          'WarehouseId': warehouse.id,
-          'AvailableFor': activity.code,
-          'InventoryTypeId': inventoryType.id,
-          'CategoryId': category.id,
-          'SubcategoryId': (subCategory ? subCategory.id : null),
-          'Classifiction': '',
-          'FromDate': startDate,
-          'ToDate': endDate,
-          'HideInventoryWithZeroQuantity': true,
-          'ShowAvailability': true,
-          'ShowImages': true
-        })
-      })
-        .catch(err => console.log("error:", err));
-      const loadedInventory = await resp.json();
-      console.log("loaded inventory:", loadedInventory);
-      const inventory = loadedInventory.Rows.map((row, i) => {
-        return this.itemObjectBuilder(row, i);
-      });
-      console.log("packaged Inventory:", inventory);
-      return inventory;
-    } else {
-      return null;
-    }
-  }
-
-  getAccessories = async (parent) => {
-    const { warehouse, activity, inventoryType, category, startDate, endDate } = this.state;
-    if (warehouse && inventoryType && category) {
-      const resp = await fetch(`${APIURL}/inventorysearch/accessories`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.state.credentials.access_token}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          'OrderId': '0000KG53',
-          'SessionId': '0000KG53',
-          'Lineage': parent.inventoryId,
-          'WarehouseId': warehouse.id,
-          'FromDate': startDate,
-          'ToDate': endDate,
-          'ShowAvailability': true,
-          'ShowImages': true
-        })
-      })
-        .catch(err => console.log("error:", err));
-      const loadedAccessories = await resp.json();
-      console.log("loaded accessories:", loadedAccessories);
-      const accessories = loadedAccessories.Rows.map((row, i) => {
-        return this.itemObjectBuilder(row, i, parent);
-      });
-      console.log("packaged Accessories", accessories);
-      return accessories;
-    } else {
-      return null;
-    }
-  }
-
-  itemObjectBuilder = (item, i, parent = null) => {
-    const { activity, warehouse, inventoryType, category, subCategory } = this.state;
-    const defaultQuantity = parent ? item[52] : 1; //item[52] = "default quantity"
-    const itemObject = {
-      activity: activity,
-      warehouse: warehouse,
-      inventoryType: inventoryType,
-      category: category,
-      subCategory: subCategory,
-      //
-      available: item[22],
-      branchChain: parent ? [...parent.branchChain, item[7] + "x" + item[0]] : [activity.name, warehouse.name, inventoryType.name, category.name, item[7]],
-      details: item,
-      iCode: item[5],
-      id: item[0],
-      inventoryId: item[2],
-      imgSrc: item[46],
-      index: i,
-      isOption: item[51],
-      isShort: false,
-      description: item[7],
-      lineage: item[3],
-      note: "",
-      parent: parent,
-      quantity: {
-        actual: 0,
-        fraction: item[51] ? 0 : defaultQuantity, //item[51] = "is option"
-        default: defaultQuantity
-      },
-      rate: item[35],
-      type: item[19]
-    }
-    itemObject.updateCartQuantity = (q) => this.addItemToCart(itemObject, q);
-    itemObject.loadAccessories = () => this.getAccessories(itemObject);
-    itemObject.displayNote = () => this.displayNote(itemObject);
-    itemObject.address = itemObject.branchChain.join("~");
-    return itemObject;
-  }
-
-  getInventoryTypes = async (filter) => {
-    const { credentials, activity, warehouse } = this.state;
+  getInventoryTypes = async () => {
+    const { credentials, activity } = this.state;
     const resp = await fetch(`${APIURL}/inventorytype/browse`, {
       method: 'POST',
       headers: {
@@ -398,48 +172,432 @@ class App extends React.Component {
       inventoryTypeList[type[0]] = {
         id: type[0],
         value: type[0],
-        name: type[1],
+        name: "InventoryType",
         label: type[1],
-        index: i
+        index: i,
+        loadChildren: () => this.getCategories([type[0]])
       }
+      inventoryTypeList[type[0]].setter = () => this.setInventoryType(inventoryTypeList[type[0]]);
     });
+    console.log("inventoryTypeList:", inventoryTypeList);
     return inventoryTypeList;
   }
 
-  getWarehouses = async (filter) => {
-    const resp = await fetch(`${APIURL}/warehouse/browse`, {
+  getCategories = async ([inventoryTypeId]) => {
+    const { credentials, activity } = this.state;
+    const resp = await fetch(`${APIURL}/${activity.name}category/browse`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.state.credentials.access_token}`,
+        'Authorization': `Bearer ${credentials.access_token}`,
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        'orderby': 'Warehouse',
-        'searchfieldoperators': ['<>'],
-        'searchfields': ['Inactive'],
-        'searchfieldtypes': ['Text'],
-        'searchfieldvalues': ['T']
+        'orderby': 'Category',
+        'searchfieldoperators': ['<>', '='],
+        'searchfields': ['Inactive', 'InventoryTypeId'],
+        'searchfieldtypes': ['Text', 'Text'],
+        'searchfieldvalues': ['T', `${inventoryTypeId}`],
+        'searchseparators': [',']
       })
     })
       .catch(err => console.log(err));
-
-    const warehouses = await resp.json();
-    let warehouseList = {};
-    warehouses.Rows.forEach((warehouse, i) => {
-      warehouseList[warehouse[0]] = {
-        id: warehouse[0],
-        value: warehouse[0],
-        name: warehouse[1],
-        label: warehouse[1],
-        code: warehouse[2],
-        index: i
+    //
+    const categories = await resp.json();
+    let categoryList = {};
+    categories.Rows.forEach((category, i) => {
+      categoryList[category[2]] = {
+        id: category[2],
+        value: category[2],
+        name: "Category",
+        label: category[3],
+        index: i,
+        loadChildren: () => this.getSubCategories([inventoryTypeId, category[2]]),
       }
+      categoryList[category[2]].setter = () => this.setCategory(categoryList[category[2]])
+    });
+    return categoryList;
+  }
+  
+  getSubCategories = async ([inventoryTypeId, categoryId]) => {
+    const { credentials, activity } = this.state;
+    const resp = await fetch(`${APIURL}/subcategory/browse`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${credentials.access_token}`,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        'orderby': 'OrderBy',
+        // 'uniqueids': {'CategoryId':category.id, 'TypeId':inventoryType.id, 'RecType': activity.code}
+        'searchfieldoperators': ['<>', '=', '=', '='],
+        'searchfields': ['Inactive', 'TypeId', 'CategoryId', 'RecType'],
+        'searchfieldtypes': ['Text', 'Text', 'Text', 'Text'],
+        'searchfieldvalues': ['T', `${inventoryTypeId}`, `${categoryId}`, `${activity.code}`],
+        'searchseparators': [',',',',',',',']
+      })
     })
-    return warehouseList;
+      .catch(err => console.log(err));
+    //
+    const subcategories = await resp.json();
+    let subcategoryList = {};
+    subcategories.Rows.forEach((subcategory, i) => {
+      subcategoryList[subcategory[0]] = {
+        id: subcategory[0],
+        value: subcategory[0],
+        name: "SubCategory",
+        label: subcategory[1],
+        index: i,
+        loadChildren: () => {return null},
+      }
+      subcategoryList[subcategory[0]].setter = () => this.setSubCategory(subcategoryList[subcategory[0]])
+    });
+    return subcategoryList;
   }
 
-  picPreview = (src, title) => {
-    const picHTML = <PictureModal src={src} title={title} cancel={() => this.setMainModal(null)} />;
+  getCredentials = (name=DEFAULTLOGIN.name, pass=DEFAULTLOGIN.password) => {
+    fetch(`${APIURL}/jwt`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        UserName: name,
+        Password: pass
+      })
+    })
+      .then(response => response.json())
+      .then(res => {
+        console.log("api credentials:", res);
+        this.setState({ credentials: res });
+        this.getSession();
+      })
+      .catch((err, res) => { console.log(err, "response:", res) });
+  }
+
+  getSession = () => {
+    const { credentials } = this.state;
+    fetch(`${APIURL}/account/session?applicationid=0A5F2584-D239-480F-8312-7C2B552A30BA`, {
+      method: 'get',
+      headers: {
+        'Authorization': `Bearer ${credentials.access_token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => response.json())
+      .then(res => {
+        console.log("session info:", res);
+        this.setState({ session: res });
+        this.initialConfig();
+      })
+      .catch((err, res) => { console.log(err, "response:", res) });
+  }
+
+  getInventory = async (searchTerm="", page=1) => {
+    const { credentials, session, warehouse, activity, inventoryType, category, subCategory, startDate, endDate } = this.state;
+    console.log("loading inventory with", inventoryType, category, subCategory);
+    let resp = null;
+    switch (FETCHINVENTORYMETHOD) {
+      case "search":
+        console.log("using SEARCH method");
+        resp = await fetch(`${APIURL}/inventorysearch/search`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${credentials.access_token}`,
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            'OrderId': session.webUser.webuserid,
+            'SessionId': session.webUser.webuserid,
+            'CurrencyId': '0000000E',
+            'WarehouseId': warehouse.id,
+            'AvailableFor': activity.code,
+            'InventoryTypeId': inventoryType.id,
+            'CategoryId': (category ? category.id : null),
+            'SubcategoryId': (subCategory ? subCategory.id : null),
+            'Classifiction': '',
+            'FromDate': startDate,
+            'ToDate': endDate,
+            'HideInventoryWithZeroQuantity': true,
+            'ShowAvailability': true,
+            'ShowImages': true
+          })
+        })
+          .catch(err => console.log("error:", err));
+        break;
+      //
+      case "browse":
+        console.log("using BROWSE method");
+        const searchValues = [inventoryType, category, subCategory, searchTerm];
+        const searchParams = {
+          searchCondition: [],
+          seachFieldOperators: ["<>"],
+          searchFields: ["Inactive"],
+          searchFieldTypes: ["text"],
+          searchFieldValues: ["T"],
+          searchSeparators: []
+        }
+        console.log("loading with parameters:", searchParams);
+        let fieldOperator, fieldName, fieldValue = "";
+        searchValues.forEach(value => {
+          if (value != null && value != "") {
+            if (typeof value === "string") {
+              fieldOperator = "like";
+              fieldName = "DescriptionWithAkas";
+              fieldValue = searchTerm;
+            } else {
+              fieldOperator = "=";
+              fieldName = value.name;
+              fieldValue = value.label
+            }
+            searchParams.searchCondition.push("and");
+            searchParams.seachFieldOperators.push(fieldOperator);
+            searchParams.searchFields.push(fieldName);
+            searchParams.searchFieldTypes.push("text");
+            searchParams.searchFieldValues.push(fieldValue);
+            searchParams.searchSeparators.push(",");
+          }
+        })
+        resp = await fetch(`${APIURL}/rentalinventory/browse`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${credentials.access_token}`,
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            'module': 'Renta;Inventory',
+            'orderby': 'DescriptionWithAkas asc',
+            'pageno': page,
+            'pagesize': 25,
+            'searchcondition': searchParams.searchCondition,
+            'searchconjunctions': [],
+            'searchfieldoperators': searchParams.seachFieldOperators,
+            'searchfields': searchParams.searchFields,
+            'searchfieldtypes': searchParams.searchFieldTypes,
+            'searchfieldvalues': searchParams.searchFieldValues,
+            'searchseparators': searchParams.searchSeparators,
+            'top': 0,
+            'uniqueids': { WarehouseId: warehouse.id }
+            //
+          })
+        })
+          .catch(err => console.log("error:", err));
+        
+        break;
+      default:
+        console.log("there was an error with th value");
+        break;
+    }
+    //
+    const inventoryReturn = await resp.json();
+    console.log("loaded inventory:", inventoryReturn);
+    const inventory = inventoryReturn.Rows.map((row, i) => {
+      return this.itemObjectBuilder(row, i, FETCHINVENTORYMETHOD);
+    });
+    console.log("packaged Inventory:", inventory);
+    return {
+      inventory: inventory,
+      pageNo: inventoryReturn.PageNo,
+      totalPages: inventoryReturn.TotalPages,
+      totalRows: inventoryReturn.TotalRows
+    }
+  }
+
+  getAccessories = async (parent) => {
+    const { credentials, session, warehouse, startDate, endDate } = this.state;
+    const resp = await fetch(`${APIURL}/inventorysearch/accessories`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${credentials.access_token}`,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        'OrderId': session.webUser.webuserid,
+        'SessionId': session.webUser.webuserid,
+        'Lineage': parent.inventoryId,
+        'WarehouseId': warehouse.id,
+        'FromDate': startDate,
+        'ToDate': endDate,
+        'ShowAvailability': true,
+        'ShowImages': true
+      })
+    })
+      .catch(err => console.log("error:", err));
+    const loadedAccessories = await resp.json();
+    console.log("loaded accessories:", loadedAccessories);
+    const accessoryList = loadedAccessories.Rows.map((row, i) => {
+      return this.itemObjectBuilder(row, i, "search", parent);
+    });
+    console.log("packaged Accessories", accessoryList);
+    return accessoryList;
+  }
+
+  itemObjectBuilder = (item, i, fetchMethod, parent = null) => {
+    const { activity, inventoryType, category, subCategory } = this.state;
+    const categoryName = category ? category.name : "";
+    const subCategoryName = subCategory ? subCategory.name : "";
+    const defaultQuantity = parent ? item[52] : 1; //item[52] = "default quantity"
+    let itemObject = {};
+    switch (fetchMethod) {
+      case "search":
+        itemObject = {
+          activity: activity,
+          inventoryType: inventoryType,
+          category: category,
+          subCategory: subCategory,
+          //
+          available: item[22],//                                                    inv type/ category/ sub-cat
+          branchChain: parent ? [...parent.branchChain, item[7] + "x" + item[0]] : [item[12], item[14], item[16], item[7]],
+          details: item,
+          hasChildren: item[19] === "KIT" || item[19] === "COMPLETE",
+          iCode: item[5],
+          id: item[0],
+          inventoryId: item[2],
+          imgSrc: `${APIURL}/appimage/getimage?appimageid=${item[45]}&thumbnail=false`,
+          imgID: item[45],
+          index: i,
+          isOption: item[51],
+          isShort: false,
+          label: item[7],
+          lineage: item[3],
+          note: "",
+          nodeChildren: {},
+          parent: parent,
+          quantity: {
+            actual: 0,
+            fraction: item[51] ? 0 : defaultQuantity, //item[51] = "is option"
+            default: defaultQuantity
+          },
+          rate: item[35],
+          type: item[19]
+        }
+        break;
+      case "browse":
+        itemObject = {
+          activity: activity,
+          inventoryType: inventoryType,
+          category: category,
+          subCategory: subCategory,
+          //
+          available: 1       ,//                                                    inv type/ category/ sub-cat
+          branchChain: parent ? [...parent.branchChain, item[196] + "x" + i] : [item[156], item[199], item[202], item[196]],
+          details: item,
+          hasChildren: item[204] === "KIT" || item[204] === "COMPLETE",
+          iCode: item[195],
+          id: i,
+          inventoryId: item[155],
+          imgSrc: "",
+          imgID: "",
+          index: i,
+          isOption: false,
+          isShort: false,
+          label: item[196],
+          lineage: item[3],
+          note: "",
+          nodeChildren: {},
+          parent: parent,
+          quantity: {
+            actual: 0,
+            fraction: 1,
+            default: 1
+          },
+          rate: item[173],
+          type: item[204]
+        }
+        break;
+      default:
+        break;
+      
+    }
+    itemObject.updateCartQuantity = (q) => this.addItemToCart(itemObject, q);
+    itemObject.loadChildren = () => this.getAccessories(itemObject);
+    itemObject.displayNote = () => this.displayNote(itemObject);
+    itemObject.picPreview = () => this.picPreview(itemObject);
+    itemObject.loadBrowseImage = () => this.loadBrowseImage(item[155], itemObject);
+    itemObject.address = itemObject.branchChain.join("~");
+    return itemObject;
+  }
+  
+  getWarehouse = async (warehouseId) => {
+    const resp = await fetch(`${APIURL}/warehouse/${warehouseId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.state.credentials.access_token}`,
+        'content-type': 'application/json'
+      }
+    })
+      .catch(err => console.log(err));
+    return await resp.json();
+  }
+
+  delimiter = (amount) => {
+    let commaAmount = "";
+    const textAmount = amount.toFixed(2);
+    const sep = textAmount.length > 6 ? "," : "";
+    textAmount.split("").reverse().forEach((n, i) => {
+      if (i > 4) {
+        commaAmount =  n + (i % 3 === 0 ? sep : "") + commaAmount;
+      } else {
+        commaAmount =  n + commaAmount;
+      }
+    })
+    return commaAmount ;
+  }
+
+  // getWarehouses = async (filter) => {
+  //   const resp = await fetch(`${APIURL}/warehouse/browse`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Authorization': `Bearer ${this.state.credentials.access_token}`,
+  //       'content-type': 'application/json'
+  //     },
+  //     body: JSON.stringify({
+  //       'orderby': 'Warehouse',
+  //       'searchfieldoperators': ['<>'],
+  //       'searchfields': ['Inactive'],
+  //       'searchfieldtypes': ['Text'],
+  //       'searchfieldvalues': ['T']
+  //     })
+  //   })
+  //     .catch(err => console.log(err));
+
+  //   const warehouses = await resp.json();
+  //   let warehouseList = {};
+  //   warehouses.Rows.forEach((warehouse, i) => {
+  //     warehouseList[warehouse[0]] = {
+  //       id: warehouse[0],
+  //       value: warehouse[0],
+  //       name: warehouse[1],
+  //       label: warehouse[1],
+  //       code: warehouse[2],
+  //       index: i
+  //     }
+  //   })
+  //   return warehouseList;
+  // }
+
+  loadBrowseImage = async (id, item) => {
+    const imgResp = await fetch(`${APIURL}/appimage/getimages?uniqueid1=${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.state.credentials.access_token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => response.json())
+      .then(res => {
+        if (res) {
+          if (res.length > 0) {
+            item.imgID = res[0].AppImageId;
+            return `${APIURL}/appimage/getimage?appimageid=${res[0].AppImageId}&thumbnail=false`;
+          }
+        }
+        return null;
+      })
+
+      .catch((err, res) => { console.log(err, "response:", res) });
+    return imgResp;
+  }
+
+  picPreview = (item) => {
+    const picHTML = <PictureModal src={`${APIURL}/appimage/getimage?appimageid=${item.imgID}&thumbnail=false`} title={item.label} cancel={() => this.setMainModal(null)} />;
     this.setMainModal(picHTML);
   }
 
@@ -447,11 +605,21 @@ class App extends React.Component {
     this.setState({ mainModal: modalHTML });
   }
 
+  setInventoryType = (e) => {
+    if (!e) {
+      console.log("inventoryType not set");
+    } else {
+      console.log("setting InventoryType to", e);
+      this.setState({ inventoryType: e, category: null, subCategory: null });
+    }
+  }
+
   setCategory = (e) => {
     if (!e) {
       console.log("category not set");
     } else {
-      this.setState({ category: e });
+      console.log("setting Category to", e);
+      this.setState({ category: e, subCategory: null });
     }
   }
 
@@ -459,6 +627,7 @@ class App extends React.Component {
     if (!e) {
       console.log("subcategory not set");
     } else {
+      console.log("setting Sub-Category to", e);
       this.setState({ subCategory: e });
     }
   }
@@ -467,14 +636,6 @@ class App extends React.Component {
     const [start, end] = dates;
     const quotePeriod = this.getNumberOfDays(start, end);
     this.setState({ startDate: start, endDate: end, quotePeriod: quotePeriod });
-  }
-
-  setInventoryType = (e) => {
-    if (!e) {
-      console.log("inventoryType not set");
-    } else {
-      this.setState({ inventoryType: e, category: null});
-    }
   }
 
   setActivity = (e) => {
@@ -533,22 +694,6 @@ class App extends React.Component {
     })
   }
 
-  // checkAvailability = (inventoryId, start, end) => {
-  //   fetch(`${APIURL}/inventoryavailability/getinventoryavailability`, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Authorization': `Bearer ${this.state.credentials.access_token}`,
-  //       'content-type': 'application/json'
-  //     },
-  //     body: {
-  //       InventoryId: inventoryId,
-  //       Warehouse: this.state.warehouse,
-  //       FromDate: start,
-  //       ToDate: end
-  //     }
-  //   })
-  // }
-
   setColors = (colors) => {
     Object.keys(colors).forEach(color => {
       colors[color].contrast = "black";
@@ -602,18 +747,60 @@ class App extends React.Component {
     return diffInDays + 1;
   }
 
-  componentDidMount() {
+  initialConfig = async () => {
+    //set branding colors
     this.setColors(this.state.colors);
+
+    //load warehouse
+    if (this.state.credentials) {
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      const warehouseId = config.warehouses[urlParams.get('warehouse')];
+      let warehouse = {
+        loaded: false
+      }
+      if (warehouseId) {
+        const warehouseDetails = await this.getWarehouse(warehouseId);
+        warehouse = {
+          loaded: true,
+          id: warehouseDetails.WarehouseId,
+          value: warehouseDetails.WarehouseId,
+          name: warehouseDetails.Warehouse,
+          label: warehouseDetails.Warehouse,
+          code: warehouseDetails.WarehouseCode,
+          index: 0
+        }
+      } else {
+        console.log("no warehouse specified");
+      }
+      this.setWarehouse(warehouse);
+    }
+  }
+
+  componentDidMount() {
     this.getCredentials();
   } 
 
   render() {
-    const { route, mainModal, warehouse, activity, inventoryType, category, subCategory, startDate, endDate, quotePeriod, cartList, cartMode, showColorsModal, colors } = this.state;
+    const { credentials, route, mainModal, activity, inventoryType, category, subCategory, startDate, endDate, quotePeriod, cartList, cartMode, showColorsModal, colors, warehouse } = this.state;
     //console.log("App render with state:", this.state);
     //
     let colorzModal, paramColumn, catalogColumn, cartColumn, mainApp = undefined;
+    const addressChain = <div className="address-chain">
+      {
+        [inventoryType, category, subCategory].map(tier => {
+          if (tier) {
+            return (
+              <div className="chain-link">
+                <div className="link-spacer">></div>
+                <div className="link-label" onClick={tier.setter}>{tier.label}</div>
+              </div>
+            )
+          }
+        })
+      }
+    </div>
     //
-
     this.renderColors();
     const { primary, secondary, background } = colors;
     //
@@ -621,116 +808,46 @@ class App extends React.Component {
       case 'home':
         mainApp = <HomePage/>
         break;
-        case 'catalog':
-          if (this.state.credentials) {
-            switch (this.state.credentials.statuscode) {
-              case 0:
-              colorzModal = <Colorz colors={colors} setColors={this.setColors} />;
-              paramColumn =
-                <div className="column">
-                
-                  <div className="parameters" style={{ color: primary.contrast, borderColor: primary.contrast }}>
-                    <div className="column-header column-segment">
-                      <h1><i>tune</i>PARAMETERS</h1>
-                    </div>
-                    <div className="column-segment">
-                      <SuperDate
-                        startDate={startDate}
-                        endDate={endDate}
-                        mode="start"
-                        setDates={this.setDates}
-                        textColor={primary.contrast}
-                      />
-                      <SuperDate
-                        startDate={startDate}
-                        endDate={endDate}
-                        mode="end"
-                        setDates={this.setDates}
-                        textColor={primary.contrast}
-                      />
-                    </div>
-                    <div className="column-segment">
-                      <RadioButton
-                        name="Activity Type"
-                        options={ACTIVITYLIST}
-                        selected={activity.name}
-                        action={this.setActivity}
-                      />
-                    </div>
-                    <div className="column-segment select">
-                      <SuperSelect
-                        name="warehouse"
-                        loader={this.getWarehouses}
-                        action={this.setWarehouse}
-                        reloadOn={[activity]}
-                        placeholder="Select a Warehouse"
-                        searchable={false}
-                        textColor={primary.contrast}
-                        preload
-                      />
-                    </div>
-                    <div className="column-segment select">
-                      <SuperSelect
-                        name="Inventory Type"
-                        loader={this.getInventoryTypes}
-                        action={this.setInventoryType}
-                        reloadOn={[activity, warehouse]}
-                        placeholder="Select an Inventory Type"
-                        searchable={true}
-                        textColor={primary.contrast}
-                        value={inventoryType}
-                      // preload
-                      />
-                    </div>
-                    <div className="column-segment select">
-                      <SuperSelect
-                        name="category"
-                        loader={this.getCategories}
-                        action={this.setCategory}
-                        reloadOn={[activity, warehouse, inventoryType]}
-                        placeholder="Select a Category"
-                        searchable={true}
-                        textColor={primary.contrast}
-                        value={category}
-                      />
-                    </div>
-                    {/* <div className="column-segment select">
-                      <SuperSelect
-                        name="sub-category"
-                        loader={this.getSubCategories}
-                        action={this.setSubCategory}
-                        reloadOn={[activity, warehouse, inventoryType, category]}
-                        placeholder="Select a Sub-Category"
-                        searchable={true}
-                        textColor={primary.contrast}
-                        value={subCategory}
-                      />
-                    </div> */}
-                  </div>
-                </div>
-  
-              catalogColumn =
-                <div className="column center" style={{ color: background.contrast, borderColor: background.contrast }}>
-                  <div className="column-header column-segment">
-                    <h1><i>menu_book</i>{activity.label.toUpperCase()} CATALOG</h1>
-                  </div>
-                  <Catalog
-                    loader={this.getInventory}
-                    activity={activity}
+      case 'catalog':
+        if (credentials) {
+          if (warehouse.loaded) {
+            if (this.state.credentials) {
+    
+              switch (this.state.credentials.statuscode) {
+                case 0:
+                  colorzModal = <Colorz colors={colors} setColors={this.setColors} />;
+                  paramColumn = <Parameters
+                    startDate={startDate}
+                    endDate={endDate}
+                    setDates={this.setDates}
+                    contrastColor={primary.contrast}
                     warehouse={warehouse}
+                    getInventoryTypes={this.getInventoryTypes}
+                    setInventoryType={this.setInventoryType}
+                    getCategories={this.getCategories}
+                    setCategory={this.setCategory}
+                    getSubCategories={this.getSubCategories}
+                    setSubCategory={this.setSubCategory}
+                    inventoryType={inventoryType}
+                    category={category}
+                  />
+                  //
+                  catalogColumn = <Catalog
+                    delimiter={this.delimiter}
+                    loader={this.getInventory}
+                    addressChain={addressChain}
+                    activity={activity}
                     inventoryType={inventoryType}
                     category={category}
                     subCategory={subCategory}
                     startDate={startDate}
                     endDate={endDate}
                     cart={cartList}
-                    picPreview={this.picPreview}
+                    fetchInventoryMethod={FETCHINVENTORYMETHOD}
                   />
-                </div>
-  
-              cartColumn =
-                <div className="column right">
-                  <Cart
+                  //
+                  cartColumn = <Cart
+                    delimiter={this.delimiter}
                     cartMode={cartMode}
                     cartList={cartList}
                     activityList={ACTIVITYLIST}
@@ -739,30 +856,41 @@ class App extends React.Component {
                     submitQuote={this.submitModal}
                     toggleCart={this.toggleCart}
                   />
-                </div>
-              
-              mainApp =
-                <article>
-                  {colorzModal}
-                  {mainModal}
-                  <div className="body-margin"></div>
-                  <div className="body-main">
-                    {paramColumn}
-                    {catalogColumn}
+                  //
+                  mainApp = <div className="app-space">
+                    {colorzModal}
+                    {mainModal}
+                    <div className="body-margin"></div>
+                    <div className="body-main">
+                      <div className="column left">
+                        {paramColumn}
+                      </div>
+                      <div className="column center" style={{ color: background.contrast, borderColor: background.contrast }}>
+                        {catalogColumn}
+                      </div>
+                    </div>
+                    <div className="body-margin">
+                      <div className="column right">
+                        {cartColumn}
+                      </div>
+                    </div>
                   </div>
-                  <div className="body-margin">
-                    {cartColumn}
-                  </div>
-                </article>
-              break;
-            case undefined:
-              catalogColumn = <div className="modal"><Loader textColor={background.contrast}/></div>
-              break;
-            default:
-              console.log("there was a problem loading your credentials");
+                  break;
+                case undefined:
+                  catalogColumn = <div className="modal"><Loader textColor={background.contrast}/></div>
+                  break;
+                default:
+                  catalogColumn = <div className="modal">ERROR</div>
+                  console.log("there was a problem loading your credentials");
+              }
+            } else {
+              mainApp = <div className="modal abs"><Loader input="CONNECTING TO DATABASE" textColor={background.contrast}/></div>
+            }
+          } else {
+            mainApp = <div className="modal" style={{ color: background.contrast}}>This Cart App requires a Warehouse to be specified. Please request a warehouse-specific url from {config.companyName}.</div>
           }
         } else {
-          mainApp = <div className="modal abs"><Loader input="CONNECTING TO DATABASE" textColor={background.contrast}/></div>
+          mainApp = <div className="modal" style={{ color: background.contrast}}>There was a problem connecting to the server. Please try again later.<br/>If this issue persists, please contact {config.companyName}.</div>
         }
         break;
       default:

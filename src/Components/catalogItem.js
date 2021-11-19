@@ -23,7 +23,7 @@ const CatalogItem = ({ item, cart, loader, updateSubRows, rowIndex, rootParent, 
         //handleimage preview
         let imageSource = undefined;
         if (item.imgSrc) {
-            imageSource = <div className="item-image-thumbnail" onClick={() => picPreview(item.imgSrc, item.description)}><img src={item.imgSrc}/></div>
+            imageSource = <div className="item-image-thumbnail" onClick={() => item.picPreview()}><img src={item.imgSrc}/></div>
         } else {
             imageSource = <div className="item-image-thumbnail"><i>cancel_presentation</i><br/><span>No Image</span></div>
         }
@@ -52,7 +52,7 @@ const CatalogItem = ({ item, cart, loader, updateSubRows, rowIndex, rootParent, 
                     </div>
                 </li>
                 <li className="item-segment item-image">{imageSource}</li>
-                <li className="item-segment item-description"><div className="row-description">{item.description}</div></li>
+                <li className="item-segment item-description"><div className="row-description">{item.label}</div></li>
                 <li className="item-segment item-rate numeric"><div className="grid-label">Rate:</div><div>$ {item.rate.toFixed(2)}</div></li>
                 {/* <li className="item-segment numeric"><div className="grid-label">Available:</div><div>{item.available}</div></li> */}
             </ul>

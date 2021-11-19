@@ -1,13 +1,13 @@
 body {
-    --primary-hue:211;
-    --primary-sat:74%;
-    --primary-lum:36%;
-    --secondary-hue:347;
-    --secondary-sat:99%;
-    --secondary-lum:49%;
+    --primary-hue:200;
+    --primary-sat:94%;
+    --primary-lum:57%;
+    --secondary-hue:0;
+    --secondary-sat:0%;
+    --secondary-lum:100%;
     --background-hue:0;
     --background-sat:0%;
-    --background-lum:100%;
+    --background-lum:0%;
     --shadow: 0 0 10px rgba(0,0,0,0.5);
-    --background-img: url(https://eventsbyknight.co.uk/wp-content/uploads/2018/10/7.-THE_IMPORTANCE_OF_GOOD_EVENT_PRODUCTION_.jpg)
+    --background-img: url("./images/background.jpeg");
 }

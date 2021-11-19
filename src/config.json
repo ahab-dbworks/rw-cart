@@ -1,0 +1,31 @@
+{
+    "url":"https://telemundo.rentalworksweb.com/api/v1",
+    "companyName":"RentalJockeys",
+    "defaultLogin": {
+        "name":"ahab",
+        "password":"ahab301"
+    },
+    "warehouses": {
+        "0z41x2":"0000000H",
+        "h7Ggp9":"A0002IZ7"
+    },
+    "activityList": [
+        {
+            "name": "RENTAL",
+            "code": "R",
+            "label": "Rental"
+          },
+          {
+            "name": "SALES",
+            "code": "S",
+            "label": "Sales"
+          },
+          {
+            "name": "PARTS",
+            "code": "P",
+            "label": "Parts"
+          }
+    ],
+    "fetchInventoryMethod": "browse"
+
+}

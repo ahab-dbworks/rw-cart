@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600&display=swap');
 @import './branding.css';
 
+article {
+    justify-content: center;
+}
+
 .home-container {
     height:100%;
     display: flex;
@@ -8,11 +12,14 @@
 }
 
 .center-column {
-    width:100%;
+    max-width:1400px;
     height: 100%;
-    margin: 0 400px;
     background-color: hsla(0,0%,0%,0.4);
-    overflow:scroll;
+    overflow-y:scroll;
+}
+
+.center-column::-webkit-scrollbar {
+    display:none;
 }
 
 .screed {
@@ -42,7 +49,6 @@
 }
 
 .highlight-box {
-    height: 300px;
     margin: 10px;
     overflow: hidden;
 }
@@ -67,6 +73,6 @@
 .highlight-content p {
     margin-top: 0;
 }
-img {
+.highlight-content img {
     border: 1px solid hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
 }

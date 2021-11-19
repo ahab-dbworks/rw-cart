@@ -1,0 +1,198 @@
+/* ################## cart general ################## */
+
+.cart {
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+    overflow: hidden;
+    color: var(--secondary-contrast);
+}
+
+.cart-node {
+    padding: 3px;
+}
+
+.cart-contents {
+    overflow:hidden;
+    flex: 1;
+}
+
+.cart-content .dbw-tbody {
+    flex: 1;
+    overflow-y: scroll;
+}
+
+.cart .bullet {
+    
+}
+.cart .bullet.hide {
+    display: none;
+}
+
+.quantity-static {
+    text-align: center;
+}
+
+.cart .super-input-container {
+    background-color: hsl(0, 0%, var(--secondary-min));
+    border-radius: 3px;
+}
+
+.cart .node-detail .super-input-container {
+    cursor: text;
+}
+
+
+/* ################## cart expander ################## */
+
+.cart .node-label {
+    order: 1;
+}
+
+.cart .node-children {
+    margin-left: 16px;
+    background-color: hsla(0, 0%, var(--secondary-max), 0.05);
+}
+
+.cart .KIT ~ .node-children, .cart .COMPLETE ~ .node-children {
+    border-left: 1px solid var(--secondary-contrast);
+
+}
+
+.cart .TIER {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    border-bottom: 1px solid var(--secondary-contrast);
+}
+
+.cart .TIER .quantity{
+    display: none;
+}
+
+
+/* ################## cart columns ################## */
+
+.cart-col {
+    white-space: nowrap;
+    text-overflow:ellipsis;
+    overflow: hidden;
+    padding-left: 5px;
+}
+
+.cart-col:not(:last-child) {
+    margin-right: 2px;
+}
+
+.cart-item > ul, .collapser-content > ul{
+    flex: 1;
+}
+
+.cart-col.spacer {
+    width: 15px;
+}
+
+.cart-col.quantity {
+    width: 30px;
+    text-align:center;
+}
+
+.cart-col.name {
+    flex: 1;
+    display: flex;
+    cursor: context-menu;
+}
+
+.cart-col.name > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+.cart-col.name > i {
+    width: 1em;
+}
+
+.cart-col.rate {
+    width: 100px;
+    padding-right: 10px;
+}
+
+.cart-col.numeric {
+    text-align: right;
+}
+
+
+/* ################## cart summary ################## */
+
+.cart-summary {
+    flex-flow: column;
+    background-color: hsl(0, 100%, var(--background-max));
+    color: hsl(0, 100%, var(--background-min));
+    font-size: 20px;
+}
+
+.cart-summary-row {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+}
+.cart-summary-row ~ * {
+    margin-top: 10px;
+}
+
+.grand {
+    font-size: 1.5em;
+}
+
+.cart .dbw-thead li {
+    border-bottom: 1px solid var(--secondary-contrast);
+}
+
+.panel-buttons {
+    display: flex;
+}
+.panel-buttons > * {
+    flex: 1;
+}
+
+
+/* ################## slide panel ################## */
+
+.slide-panel {
+    --test: 50;
+    position: absolute;
+    display: flex;
+    flex-flow: column;
+    transition: right 0.2s ease;
+    height: calc(100% - 2em);
+    width: 400px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    border-radius: 7px 0 0 7px;
+    background-color: hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
+}
+
+.slide-panel.in {
+    right: 0%;
+}
+.slide-panel.out {
+    right: -100%;
+}
+
+.slide-panel-switch{
+    position: absolute;
+    display: flex;
+    top: 1px;
+    right: 0px;
+    padding: 0.25em;
+    z-index: 2;
+    background-color: hsl(var(--secondary-hue), var(--secondary-sat), var(--secondary-lum));
+    color: var(--secondary-contrast);
+    border-radius: 7px 0 0 7px;
+    cursor: pointer;
+    margin-top: 1.75em;
+    font-size: 1.5em;
+}
+
+.slide-panel-switch i {
+    padding: 3px 0.5em 0 0;
+}

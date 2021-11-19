@@ -1,0 +1,43 @@
+.node-detail {
+    display: flex;
+    justify-content:space-between;
+    overflow: hidden;
+    width: auto;
+    border-bottom: 1px solid hsla(0, 0%, var(--primary-max), 0.15);
+    cursor: pointer;
+}
+.node-detail:hover {
+    background-color: hsla(0, 0%, var(--primary-max), 0.1);
+}
+
+.node-label {
+    flex: 1;
+    overflow: hidden;
+}
+
+.node-button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.node-button.hide{
+    display: none;
+}
+
+.nested-nodeSeries-list {
+    width: 100%;
+}
+
+.node-children {
+    height: 0px;
+    overflow:hidden;
+}
+
+.node-children.show {
+    height: auto;
+}
+
+.node-element:only-child > .TIER.flag {
+    display: none;
+}

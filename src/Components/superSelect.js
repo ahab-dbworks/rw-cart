@@ -57,7 +57,7 @@ class SuperSelect extends Select {
             control: () => ({
                 backgroundColor: 'transparent',
                 display: 'flex',
-                padding: '25px'
+                // padding: '25px'
             }),
             placeholder: () => ({
                 color: textColor,

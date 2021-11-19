@@ -5,12 +5,14 @@ const PictureModal = ({ src, title, cancel }) => {
     return (
         <div className="modal-layer">
             <div className="modal">
-                <div id="submitQuote" className="modal-container">
+                <div id="picture-preview" className="modal-container pic-preview">
                     <div className="modal-header barlow">
                         {title}
                     </div>
                     <div className="modal-body">
-                        <img src={src}/>
+                        <div className="pic">
+                            <img src={src}/>
+                        </div>
                     </div>
                 </div>
             </div>

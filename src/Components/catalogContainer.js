@@ -79,7 +79,6 @@ class CatalogContainer extends React.Component {
                                 updateSubRows={updateSubRows}
                                 rootParent={false}
                                 rowIndex={rowIndex}
-                                picPreview={picPreview}
                                 displayMode={displayMode}
                             />
                         </div>
